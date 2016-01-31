@@ -37,7 +37,7 @@ class Page
         $uri                = $_SERVER['REQUEST_URI'];
         $uri                = str_replace('&page=' . $this->current_page, '', $uri);
         $uri                = str_replace('?page=' . $this->current_page, '', $uri);
-        $this->subPage_link = Typecho_Widget::widget('Widget_Options')->siteUrl . $uri . "&page=";
+        $this->subPage_link = trim(Typecho_Widget::widget('Widget_Options')->siteUrl, '/') . $uri . "&page=";
     }
 
     /*
