@@ -1,5 +1,5 @@
 <?php
-include 'common.php';
+include_once 'common.php';
 include 'header.php';
 include 'menu.php';
 require dirname(__FILE__) . '/../Access.php';
@@ -77,7 +77,7 @@ $extend = Access_Extend::getInstance();
                                 <td><input type="checkbox" value="<?php echo $log['id']; ?>" name="id[]"/></td>
                                 <td><a href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $extend->parseUA($log['ua']); ?></a></td>
-                                <td><a data-action="ip" data-address="<?php echo $extend->getAddress($log['ip']);?>" href="#"><?php echo $log['ip']; ?></a></td>
+                                <td><a data-action="ip" target="_blank" href="<?php echo rtrim(Helper::options()->index, '/').'/access/i/ipip';?>?ip=<?php echo $log['ip'];?>"><?php echo $log['ip']; ?></a></td>
                                 <td><?php echo date('Y-m-d H:i:s',$log['date']); ?></td>                   
                             </tr>
                             <?php endforeach; ?>
@@ -183,11 +183,6 @@ include 'table-js.php';
 ?>
 <script type="text/javascript">
 $(document).ready(function() {
-    $('a[data-action="ip"]').click(function() {
-        alert($(this).data('address'));
-        return false;
-    });
-
     $('a[data-action="ua"]').click(function() {
         alert($.trim($(this).attr('title')));
         return false;
