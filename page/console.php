@@ -5,7 +5,7 @@ include 'menu.php';
 require dirname(__FILE__) . '/../Access.php';
 $extend = Access_Extend::getInstance();
 ?>
-
+<link rel="stylesheet" href="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.css')?>">
 <div class="main">
     <div class="body container">
         <div class="typecho-page-title">
@@ -56,10 +56,11 @@ $extend = Access_Extend::getInstance();
                     <table class="typecho-list-table">
                         <colgroup>
                             <col width="5"/>
-                            <col width="30%"/>
+                            <col width="20%"/>
                             <col width="25%"/>
-                            <col width=""/>
-                            <col width=""/>
+                            <col width="18%"/>
+                            <col width="20%"/>
+                            <col width="15%"/>
                         </colgroup>
                         <thead>
                             <tr>
@@ -67,6 +68,7 @@ $extend = Access_Extend::getInstance();
                                 <th><?php _e('受访地址'); ?></th>
                                 <th><?php _e('UA'); ?></th>
                                 <th><?php _e('IP地址'); ?></th>
+                                <th><?php _e('Referer'); ?></th>
                                 <th><?php _e('日期'); ?></th>
                             </tr>
                         </thead>
@@ -77,7 +79,8 @@ $extend = Access_Extend::getInstance();
                                 <td><input type="checkbox" value="<?php echo $log['id']; ?>" name="id[]"/></td>
                                 <td><a href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $extend->parseUA($log['ua']); ?></a></td>
-                                <td><a data-action="ip" target="_blank" href="<?php echo rtrim(Helper::options()->index, '/').'/access/i/ipip';?>?ip=<?php echo $log['ip'];?>"><?php echo $log['ip']; ?></a></td>
+                                <td><a data-action="ip" data-ip="<?php echo $log['ip']; ?>" href="#"><?php echo $log['ip']; ?></a></td>
+                                <td><a data-action="referer" href="#"><?php echo $log['referer']; ?></a></td>
                                 <td><?php echo date('Y-m-d H:i:s',$log['date']); ?></td>                   
                             </tr>
                             <?php endforeach; ?>
@@ -120,7 +123,7 @@ $extend = Access_Extend::getInstance();
                 
             <div class="col-mb-12 typecho-list">
 
-               <h4 class="typecho-list-table-title">总记录表格</h4>
+               <h4 class="typecho-list-table-title">访问数表格</h4>
             
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
@@ -161,6 +164,62 @@ $extend = Access_Extend::getInstance();
                     </table>
                 </div>
 
+               <h4 class="typecho-list-table-title">来源域名</h4>
+            
+                <div class="typecho-table-wrap">
+                    <table class="typecho-list-table">
+                        <colgroup>
+                            <col width="10%"/>
+                            <col width="10%"/>
+                            <col width="80%"/>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>次数</th>
+                                <th>来源域名</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($extend->referer['domain'] as $key => $value):?>
+                            <tr>
+                                <td><?php echo $key +1 ?></td>
+                                <td><?php echo $value['count']?></td>
+                                <td><?php echo $value['referer_domain']?></td>          
+                            </tr>
+                            <?php endforeach;?>
+                        </tbody>
+                    </table>
+                </div>
+
+               <h4 class="typecho-list-table-title">来源页</h4>
+            
+                <div class="typecho-table-wrap">
+                    <table class="typecho-list-table">
+                        <colgroup>
+                            <col width="10%"/>
+                            <col width="10%"/>
+                            <col width="80%"/>
+                        </colgroup>
+                        <thead>
+                            <tr>
+                                <th>排名</th>
+                                <th>次数</th>
+                                <th>来源URL</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($extend->referer['url'] as $key => $value):?>
+                            <tr>
+                                <td><?php echo $key +1 ?></td>
+                                <td><?php echo $value['count']?></td>
+                                <td><?php echo $value['referer']?></td>          
+                            </tr>
+                            <?php endforeach;?>
+                        </tbody>
+                    </table>
+                </div>
+
                  <h4 class="typecho-list-table-title">今日图表</h4>
 
                   <div class="typecho-table-wrap" id="chart">
@@ -184,12 +243,60 @@ include 'table-js.php';
 <script type="text/javascript">
 $(document).ready(function() {
     $('a[data-action="ua"]').click(function() {
-        alert($.trim($(this).attr('title')));
+        swal({   
+            title: "User-Agent",   
+            text: $.trim($(this).attr('title')),   
+            type: "info",  
+            confirmButtonText: "OK" 
+        });
         return false;
+    });
+
+    $('a[data-action="ip"]').click(function() {
+        swal({   
+            title: "IP查询中...",   
+            text: '正在请求Taobao API...',   
+            type: "info",  
+            confirmButtonText: "OK" 
+        });
+        $.ajax({
+            url: '<?php echo rtrim(Helper::options()->index, '/').'/access/ip.json';?>',
+            method: 'get',
+            dataType: 'json',
+            data: {ip: $(this).data('ip')},
+            success: function(data) {
+                if (data.code == 0){
+                    swal({   
+                        title: "IP查询成功",   
+                        text: data.data.country + data.data.area + data.data.city + data.data.country + data.data.isp,   
+                        type: "info",  
+                        confirmButtonText: "OK" 
+                        });               
+                } else {
+                    swal({   
+                        title: "IP查询失败",   
+                        text: '接口返回状态码错误',   
+                        type: "info",  
+                        confirmButtonText: "OK" 
+                        }); 
+                }
+            },
+            error: function() {
+                    swal({   
+                        title: "IP查询失败",   
+                        text: '网络异常或PHP环境配置异常',   
+                        type: "info",  
+                        confirmButtonText: "OK" 
+                    }); 
+            }
+        });
     });
 });
 </script>
+<script src="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.min.js')?>"></script>
 <?php if($extend->action == 'overview'):?>
+<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/highcharts.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/modules/exporting.js')?>"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     $('#chart').highcharts({
@@ -237,8 +344,6 @@ $(document).ready(function() {
 });
 
 </script>
-<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/highcharts.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/modules/exporting.js')?>"></script>
 <?php endif;?>
 <?php
 include 'footer.php';

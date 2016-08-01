@@ -13,6 +13,7 @@ class Access_Extend
     public $title;
     public $logs = array();
     public $overview = array();
+    public $referer = array();
 
     public function __construct()
     {
@@ -23,12 +24,10 @@ class Access_Extend
         $this->request = Typecho_Request::getInstance();
         $this->pageSize = $this->config->pageSize;
         $this->isDrop = $this->config->isDrop;
-        if ($this->pageSize == null || $this->isDrop == null)
-        {
+        if ($this->pageSize == null || $this->isDrop == null) {
             throw new Typecho_Plugin_Exception('请先设置插件！');
         }
-        switch ($this->request->get('action'))
-        {
+        switch ($this->request->get('action')) {
             case 'logs':
             default:
                 $this->action = 'logs';
@@ -39,6 +38,7 @@ class Access_Extend
                 $this->action = 'overview';
                 $this->title = '访问概览';
                 $this->parseOverview();
+                $this->parseReferer();
                 break;
         }
     }
@@ -92,8 +92,7 @@ class Access_Extend
 
     public static function getInstance()
     {
-        if (!(self::$_instance instanceof self))
-        {
+        if (!(self::$_instance instanceof self)) {
             self::$_instance = new self();
         }
         return self::$_instance;
@@ -102,131 +101,71 @@ class Access_Extend
     public function parseUA($ua)
     {
         $os = null;
-        if ($this->isSpider($ua))
-        {
+        if ($this->isSpider($ua)) {
             $os = '爬虫';
-        }
-        elseif (preg_match('/Windows NT 6.0/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 6.0/i', $ua)) {
             $os = "Windows Vista";
-        }
-        elseif (preg_match('/Windows NT 6.1/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 6.1/i', $ua)) {
             $os = "Windows 7";
-        }
-        elseif (preg_match('/Windows NT 6.2/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 6.2/i', $ua)) {
             $os = "Windows 8";
-        }
-        elseif (preg_match('/Windows NT 6.3/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 6.3/i', $ua)) {
             $os = "Windows 8.1";
-        }
-        elseif (preg_match('/Windows NT 10.0/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 10.0/i', $ua)) {
             $os = "Windows 10";
-        }
-        elseif (preg_match('/Windows NT 5.1/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 5.1/i', $ua)) {
             $os = "Windows XP";
-        }
-        elseif (preg_match('/Windows NT 5.2/i', $ua) && preg_match('/Win64/i', $ua))
-        {
+        } elseif (preg_match('/Windows NT 5.2/i', $ua) && preg_match('/Win64/i', $ua)) {
             $os = "Windows XP 64 bit";
-        }
-        elseif (preg_match('/Android ([0-9.]+)/i', $ua, $matches))
-        {
+        } elseif (preg_match('/Android ([0-9.]+)/i', $ua, $matches)) {
             $os = "Android " . $matches[1];
-        }
-        elseif (preg_match('/iPhone OS ([_0-9]+)/i', $ua, $matches))
-        {
+        } elseif (preg_match('/iPhone OS ([_0-9]+)/i', $ua, $matches)) {
             $os = 'iPhone ' . $matches[1];
-        }
-        elseif (preg_match('/Ubuntu/i', $ua, $matches))
-        {
+        } elseif (preg_match('/Ubuntu/i', $ua, $matches)) {
             $os = 'Ubuntu ';
-        }
-        elseif (preg_match('/Mac OS X ([0-9_]+)/i', $ua, $matches))
-        {
-            $os = 'Mac OS ' . $matches[1];
-        }
-        elseif (preg_match('/Linux/i', $ua, $matches))
-        {
+        } elseif (preg_match('/Mac OS X ([0-9_]+)/i', $ua, $matches)) {
+            $os = 'Mac OS X ' . $matches[1];
+        } elseif (preg_match('/Linux/i', $ua, $matches)) {
             $os = 'Linux';
-        }
-        else
-        {
+        } else {
             $os = '未知';
         }
 
-        if ($this->isSpider($ua))
-        {
+        if ($this->isSpider($ua)) {
             $browser = '爬虫';
-        }
-        elseif (preg_match('#(Camino|Chimera)[ /]([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#(Camino|Chimera)[ /]([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Camino ' . $matches[2];
-        }
-        elseif (preg_match('#SE 2([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#SE 2([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = '搜狗浏览器 2' . $matches[1];
-        }
-        elseif (preg_match('#360([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#360([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = '360浏览器 ' . $matches[1];
-        }
-        elseif (preg_match('#Maxthon( |\/)([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#Maxthon( |\/)([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Maxthon ' . $matches[2];
-        }
-        elseif (preg_match('#Chrome/([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#Chrome/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Chrome ' . $matches[1];
-        }
-        elseif (preg_match('#XiaoMi/MiuiBrowser/([0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#XiaoMi/MiuiBrowser/([0-9.]+)#i', $ua, $matches)) {
             $browser = '小米浏览器 ' . $matches[1];
-        }
-        elseif (preg_match('#Safari/([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#Safari/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Safari ' . $matches[1];
-        }
-        elseif (preg_match('#opera mini#i', $ua))
-        {
+        } elseif (preg_match('#opera mini#i', $ua)) {
             preg_match('#Opera/([a-zA-Z0-9.]+)#i', $ua, $matches);
             $browser = 'Opera Mini ' . $matches[1];
-        }
-        elseif (preg_match('#Opera.([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#Opera.([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Opera ' . $matches[1];
-        }
-        elseif (preg_match('#TencentTraveler ([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#TencentTraveler ([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = '腾讯TT浏览器 ' . $matches[1];
-        }
-        elseif (preg_match('#UCWEB([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#UCWEB([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'UCWEB ' . $matches[1];
-        }
-        elseif (preg_match('#MSIE ([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#MSIE ([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Internet Explorer ' . $matches[1];
-        }
-        elseif (preg_match('#Trident#', $ua, $matches))
-        {
+        } elseif (preg_match('#Trident#', $ua, $matches)) {
             $browser = 'Internet Explorer 11';
-        }
-        elseif (preg_match('#Edge/12.0#i', $ua, $matches))
-        {
+        } elseif (preg_match('#Edge/12.0#i', $ua, $matches)) {
             //win10中spartan浏览器
             $browser = 'Spartan';
-        }
-        elseif (preg_match('#(Firefox|Phoenix|Firebird|BonEcho|GranParadiso|Minefield|Iceweasel)/([a-zA-Z0-9.]+)#i', $ua, $matches))
-        {
+        } elseif (preg_match('#(Firefox|Phoenix|Firebird|BonEcho|GranParadiso|Minefield|Iceweasel)/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Firefox ' . $matches[2];
-        }
-        else
-        {
+        } else {
             $browser = '未知';
         }
         return $os . " / " . $browser;
@@ -235,19 +174,14 @@ class Access_Extend
     public function isSpider($ua)
     {
         $ua = strtolower($ua);
-        if (!empty($ua))
-        {
-            foreach ($this->spiderArray as $val)
-            {
+        if (!empty($ua)) {
+            foreach ($this->spiderArray as $val) {
                 $str = strtolower($val);
-                if (strpos($ua, $str) !== false)
-                {
+                if (strpos($ua, $str) !== false) {
                     return true;
                 }
             }
-        }
-        else
-        {
+        } else {
             return false;
         }
     }
@@ -255,13 +189,11 @@ class Access_Extend
     protected function getWhere($type)
     {
         $where_str = '';
-        foreach ($this->spiderArray as $value)
-        {
+        foreach ($this->spiderArray as $value) {
             $where_str .= "ua {1} LIKE " . "'%{$value}%' {2} ";
         }
         $where_str = rtrim($where_str, '{2} ');
-        switch ($type)
-        {
+        switch ($type) {
             case 1:
                 $where = str_replace('{1}', 'NOT', $where_str);
                 $where = str_replace('{2}', 'and', $where);
@@ -294,6 +226,12 @@ class Access_Extend
         $this->logs['page'] = $pager->show();
     }
 
+    protected function parseReferer()
+    {
+        $this->referer['url'] = $this->db->fetchAll("SELECT DISTINCT referer, COUNT(*) as count FROM {$this->table} GROUP BY referer ORDER BY count DESC LIMIT {$this->pageSize}");
+        $this->referer['domain'] = $this->db->fetchAll("SELECT DISTINCT referer_domain, COUNT(*) as count FROM {$this->table} GROUP BY referer_domain ORDER BY count DESC LIMIT {$this->pageSize}");
+    }
+
     protected function parseOverview()
     {
 
@@ -306,8 +244,7 @@ class Access_Extend
         $this->overview['uv']['yesterday']['total'] = 0;
         $this->overview['pv']['yesterday']['total'] = 0;
 
-        for ($i = 0; $i < 24; $i++)
-        {
+        for ($i = 0; $i < 24; $i++) {
             $today = date("Y-m-d");
             $start = strtotime(date("{$today} {$i}:00:00"));
             $end = strtotime(date("{$today} {$i}:59:59"));
@@ -319,8 +256,7 @@ class Access_Extend
             $this->overview['pv']['today']['total'] += $this->overview['pv']['today']['hours'][$i];
         }
 
-        for ($i = 0; $i < 24; $i++)
-        {
+        for ($i = 0; $i < 24; $i++) {
             $yesterday = date("Y-m-d", time() - 24 * 60 * 60);
             $start = strtotime(date("{$yesterday} {$i}:00:00"));
             $end = strtotime(date("{$yesterday} {$i}:59:59"));
@@ -348,12 +284,9 @@ class Access_Extend
     {
         $obj = json_encode($array);
         $obj = str_replace("\"", "'", $obj);
-        if ($quote)
-        {
+        if ($quote) {
             return $obj;
-        }
-        else
-        {
+        } else {
             return str_replace("'", '', $obj);
         }
     }

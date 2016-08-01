@@ -4,7 +4,7 @@
  *
  * @package Access
  * @author Kokororin
- * @version 1.1
+ * @version 1.2
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
@@ -14,7 +14,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
     {
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
-        Helper::addRoute("access_ipip", "/access/i/ipip", "Access_Action", 'ipip');
+        Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Typecho_Plugin::factory('Widget_Archive')->header = array('Access_Plugin', 'start');
         return _t($msg);
     }
@@ -23,14 +23,13 @@ class Access_Plugin implements Typecho_Plugin_Interface
     {
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
         $isDrop = $config->isDrop;
-        if ($isDrop == 0)
-        {
+        if ($isDrop == 0) {
             $db = Typecho_Db::get();
             $prefix = $db->getPrefix();
             $db->query("DROP TABLE `" . $prefix . "access`", Typecho_Db::WRITE);
         }
         Helper::removePanel(1, self::$panel);
-         Helper::removeRoute("access_ipip");
+        Helper::removeRoute("access_ip");
     }
 
     public static function config(Typecho_Widget_Helper_Form $form)
@@ -53,8 +52,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
 
     public static function install()
     {
-        if (substr(trim(dirname(__FILE__), '/'), -6) != 'Access')
-        {
+        $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access' . '">请设置</a>';
+        if (substr(trim(dirname(__FILE__), '/'), -6) != 'Access') {
             throw new Typecho_Plugin_Exception('插件目录名必须为Access');
         }
         $installDb = Typecho_Db::get();
@@ -66,6 +65,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
   `ua` varchar(255) default NULL,
   `url` varchar(64) default NULL,
   `ip` varchar(16) default NULL,
+  `referer` varchar(255) default NULL,
+  `referer_domain` varchar(100) default NULL,
   `date` int(10) unsigned default '0',
   PRIMARY KEY  (`id`)
 ) ENGINE=MYISAM  DEFAULT CHARSET=%charset%;";
@@ -73,27 +74,20 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $scripts = str_replace('%charset%', 'utf8', $scripts);
         $scripts = explode(';', $scripts);
         try {
-            foreach ($scripts as $script)
-            {
+            foreach ($scripts as $script) {
                 $script = trim($script);
-                if ($script)
-                {
+                if ($script) {
                     $installDb->query($script, Typecho_Db::WRITE);
                 }
             }
-            return '成功创建数据表，插件启用成功';
-        }
-        catch (Typecho_Db_Exception $e)
-        {
+            return '成功创建数据表，插件启用成功，' . $configLink;
+        } catch (Typecho_Db_Exception $e) {
             $code = $e->getCode();
-            if (('Mysql' == $type && $code == (1050 || '42S01')))
-            {
+            if (('Mysql' == $type && $code == (1050 || '42S01'))) {
                 $script = 'SELECT * from `' . $prefix . 'access`';
                 $installDb->query($script, Typecho_Db::READ);
-                return '数据表已存在，插件启用成功';
-            }
-            else
-            {
+                return '数据表已存在，插件启用成功，' . $configLink;
+            } else {
                 throw new Typecho_Plugin_Exception('数据表建立失败，插件启用失败。错误号：' . $code);
             }
         }
@@ -102,16 +96,14 @@ class Access_Plugin implements Typecho_Plugin_Interface
     public static function hasLogin()
     {
         $cookieUid = Typecho_Cookie::get('__typecho_uid');
-        if (null !== $cookieUid)
-        {
+        if (null !== $cookieUid) {
             $db = Typecho_Db::get();
             $user = $db->fetchRow($db->select()->from('table.users')
                     ->where('uid = ?', intval($cookieUid))
                     ->limit(1));
 
             $cookieAuthCode = Typecho_Cookie::get('__typecho_authCode');
-            if ($user && Typecho_Common::hashValidate($user['authCode'], $cookieAuthCode))
-            {
+            if ($user && Typecho_Common::hashValidate($user['authCode'], $cookieAuthCode)) {
                 return true;
             }
             Typecho_Cookie::delete('__typecho_uid');
@@ -122,8 +114,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
 
     public static function start()
     {
-        if (self::hasLogin())
-        {
+        if (self::hasLogin()) {
             return;
         }
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
@@ -131,8 +122,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $request = Typecho_Request::getInstance();
         $ip = $request->getIp();
         $url = $_SERVER['REQUEST_URI'];
-        if ($ip == null)
-        {
+        if ($ip == null) {
             $ip = 'UnKnow';
         }
         $options = Typecho_Widget::widget('Widget_Options');
@@ -144,6 +134,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
             'ua' => $request->getAgent(),
             'url' => $url,
             'ip' => $ip,
+            'referer' => $request->getReferer(),
+            'referer_domain' => parse_url($request->getReferer(), PHP_URL_HOST),
             'date' => $gtime,
         );
         $db->query($db->insert('table.access')->rows($rows));
