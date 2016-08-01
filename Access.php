@@ -228,8 +228,8 @@ class Access_Extend
 
     protected function parseReferer()
     {
-        $this->referer['url'] = $this->db->fetchAll("SELECT DISTINCT referer, COUNT(*) as count FROM {$this->table} GROUP BY referer ORDER BY count DESC LIMIT {$this->pageSize}");
-        $this->referer['domain'] = $this->db->fetchAll("SELECT DISTINCT referer_domain, COUNT(*) as count FROM {$this->table} GROUP BY referer_domain ORDER BY count DESC LIMIT {$this->pageSize}");
+        $this->referer['url'] = $this->db->fetchAll("SELECT DISTINCT referer, COUNT(*) as count FROM {$this->table} WHERE referer <> '' GROUP BY referer ORDER BY count DESC LIMIT {$this->pageSize}");
+        $this->referer['domain'] = $this->db->fetchAll("SELECT DISTINCT referer_domain, COUNT(*) as count FROM {$this->table} WHERE referer_domain <> '' GROUP BY referer_domain ORDER BY count DESC LIMIT {$this->pageSize}");
     }
 
     protected function parseOverview()
