@@ -1,10 +1,10 @@
 <?php
 /**
- * Typecho Access Plugin
+ * 获取访客信息
  *
  * @package Access
  * @author Kokororin
- * @version 1.2
+ * @version 1.3
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
@@ -16,6 +16,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Typecho_Plugin::factory('Widget_Archive')->header = array('Access_Plugin', 'start');
+        Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
         return _t($msg);
     }
 
@@ -140,5 +141,20 @@ class Access_Plugin implements Typecho_Plugin_Interface
         );
         $db->query($db->insert('table.access')->rows($rows));
 
+    }
+
+    public static function adminFooter()
+    {
+        $url = $_SERVER['PHP_SELF'];
+        $filename = substr($url, strrpos($url, '/') + 1);
+        if ($filename == 'index.php') {
+            echo '<script>
+$(document).ready(function() {
+  $("#start-link").append("<li><a href=\"';
+            Helper::options()->adminUrl('extending.php?panel=' . Access_Plugin::$panel);
+            echo '\">Access控制台</a></li>");
+});
+</script>';
+        }
     }
 }

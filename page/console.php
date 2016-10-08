@@ -3,7 +3,7 @@ include_once 'common.php';
 include 'header.php';
 include 'menu.php';
 require dirname(__FILE__) . '/../Access.php';
-$extend = Access_Extend::getInstance();
+$extend = new Access_Extend();
 ?>
 <link rel="stylesheet" href="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.css')?>">
 <div class="main">
@@ -77,10 +77,10 @@ $extend = Access_Extend::getInstance();
                             <?php foreach ($extend->logs['list'] as $log): ?>
                             <tr id="<?php echo $log['id']; ?>">
                                 <td><input type="checkbox" value="<?php echo $log['id']; ?>" name="id[]"/></td>
-                                <td><a href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
+                                <td><a target="_blank" href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $extend->parseUA($log['ua']); ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo $log['ip']; ?>" href="#"><?php echo $log['ip']; ?></a></td>
-                                <td><a data-action="referer" href="#"><?php echo $log['referer']; ?></a></td>
+                                <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
                                 <td><?php echo date('Y-m-d H:i:s',$log['date']); ?></td>                   
                             </tr>
                             <?php endforeach; ?>
