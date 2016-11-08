@@ -8,7 +8,6 @@ class Access_Extend
     protected $request;
     protected $pageSize;
     protected $isDrop;
-    private static $_instance = null;
     public $action;
     public $title;
     public $logs = array();
@@ -280,6 +279,25 @@ class Access_Extend
             return $obj;
         } else {
             return str_replace("'", '', $obj);
+        }
+    }
+
+    public function isAdmin()
+    {
+        $hasLogin = Typecho_Widget::widget('Widget_User')->hasLogin();
+        if (!$hasLogin) {
+            return false;
+        }
+        $isAdmin = Typecho_Widget::widget('Widget_User')->pass('administrator', true);
+        return $isAdmin;
+    }
+
+    public function deleteLogs($ids)
+    {
+        foreach ($ids as $id) {
+            $this->db->query($this->db->delete($this->table)
+                    ->where('id = ?', $id)
+            );
         }
     }
 

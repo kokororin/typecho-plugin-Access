@@ -31,7 +31,7 @@ $extend = new Access_Extend();
                             <div class="btn-group btn-drop">
                                 <button class="btn dropdown-toggle btn-s" type="button"><i class="sr-only"><?php _e('操作'); ?></i><?php _e('选中项'); ?> <i class="i-caret-down"></i></button>
                                 <ul class="dropdown-menu">
-                                    <li><a lang="<?php _e('你确认要删除这些记录吗?'); ?>" href="javascript:alert('这个功能并没有开发呢')"><?php _e('删除'); ?></a></li>
+                                    <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
                                 </ul>
                             </div>  
                         </div>
@@ -75,8 +75,8 @@ $extend = new Access_Extend();
                         <tbody>
                             <?php if(!empty($extend->logs['list'])): ?>
                             <?php foreach ($extend->logs['list'] as $log): ?>
-                            <tr id="<?php echo $log['id']; ?>">
-                                <td><input type="checkbox" value="<?php echo $log['id']; ?>" name="id[]"/></td>
+                            <tr id="<?php echo $log['id']; ?>" data-id="<?php echo $log['id']; ?>">
+                                <td><input type="checkbox" data-id="<?php echo $log['id']; ?>" value="<?php echo $log['id']; ?>" name="id[]"/></td>
                                 <td><a target="_blank" href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $extend->parseUA($log['ua']); ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo $log['ip']; ?>" href="#"><?php echo $log['ip']; ?></a></td>
@@ -102,7 +102,7 @@ $extend = new Access_Extend();
                             <div class="btn-group btn-drop">
                                 <button class="btn dropdown-toggle btn-s" type="button"><i class="sr-only"><?php _e('操作'); ?></i><?php _e('选中项'); ?> <i class="i-caret-down"></i></button>
                                 <ul class="dropdown-menu">
-                                    <li><a lang="<?php _e('你确认要删除这些记录吗?'); ?>" href="javascript:alert('这个功能并没有开发呢')"><?php _e('删除'); ?></a></li>
+                                    <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
                                 </ul>
                             </div>         
                         </div>
@@ -265,18 +265,18 @@ $(document).ready(function() {
             dataType: 'json',
             data: {ip: $(this).data('ip')},
             success: function(data) {
-                if (data.code == 0){
+                if (data.code == 0) {
                     swal({   
                         title: "IP查询成功",   
                         text: data.data.country + data.data.area + data.data.city + data.data.country + data.data.isp,   
-                        type: "info",  
+                        type: "success",  
                         confirmButtonText: "OK" 
                         });               
                 } else {
                     swal({   
                         title: "IP查询失败",   
                         text: '接口返回状态码错误',   
-                        type: "info",  
+                        type: "warning",  
                         confirmButtonText: "OK" 
                         }); 
                 }
@@ -285,12 +285,60 @@ $(document).ready(function() {
                     swal({   
                         title: "IP查询失败",   
                         text: '网络异常或PHP环境配置异常',   
-                        type: "info",  
+                        type: "warning",  
                         confirmButtonText: "OK" 
                     }); 
             }
         });
         return false;
+    });
+
+    $('.dropdown-menu a[data-action="delete"]').click(function() {
+        swal({
+          title: "你确定?",
+          text: "你确认要删除这些记录吗?",
+          type: "warning",
+          showCancelButton: true,
+          confirmButtonColor: "#DD6B55",
+          confirmButtonText: "是的",
+          cancelButtonText: "算啦",
+          closeOnConfirm: false
+        }, function() {
+                var ids = [];
+                $('.typecho-list-table input[type="checkbox"]').each(function(index, elem) {
+                    if (elem.checked) {
+                        ids.push($(elem).data('id'));
+                    }
+                });
+
+                if (ids.length == 0) {
+                    return swal("错误", "你并没有勾选任何内容", "warning");
+                }
+                $.ajax({
+                    url: '<?php echo rtrim(Helper::options()->index, '/').'/access/log/delete';?>',
+                    method: 'post',
+                    dataType: 'json',
+                    contentType: 'application/json',
+                    data: JSON.stringify(ids),
+                    success: function(data) {
+                        if (data.code == 0) {
+                            swal("删除成功", "所选记录已删除", "success");
+                            $.each(ids, function(index, elem) {
+                                $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
+                            });
+                        } else {
+                            swal({   
+                                title: "错误",   
+                                text: '发生错误了',   
+                                type: "warning",  
+                                confirmButtonText: "OK" 
+                                }); 
+                        }
+                    }
+                });
+        });
+        var t = $(this);
+        t.parents('.dropdown-menu').hide().prev().removeClass('active');
     });
 });
 </script>
@@ -345,6 +393,21 @@ $(document).ready(function() {
 });
 
 </script>
+<?php endif;?>
+<?php if (Typecho_Widget::widget('Widget_Options')->plugin('Access') == 1):?>
+<script type="text/javascript">
+  var _paq = _paq || [];
+  _paq.push(['trackPageView']);
+  _paq.push(['enableLinkTracking']);
+  (function() {
+    var u="//analytics.kotori.love/";
+    _paq.push(['setTrackerUrl', u+'piwik.php']);
+    _paq.push(['setSiteId', '3']);
+    var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
+    g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
+  })();
+</script>
+<noscript><p><img src="//analytics.kotori.love/piwik.php?idsite=3" style="border:0;" alt="" /></p></noscript>
 <?php endif;?>
 <?php
 include 'footer.php';

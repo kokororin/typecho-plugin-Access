@@ -4,7 +4,7 @@
  *
  * @package Access
  * @author Kokororin
- * @version 1.3
+ * @version 1.4
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
@@ -15,6 +15,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
+        Helper::addRoute("access_delete_logs", "/access/log/delete", "Access_Action", 'deleteLogs');
         Typecho_Plugin::factory('Widget_Archive')->header = array('Access_Plugin', 'start');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
         return _t($msg);
@@ -31,20 +32,27 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
         Helper::removePanel(1, self::$panel);
         Helper::removeRoute("access_ip");
+        Helper::removeRoute("access_delete_logs");
     }
 
     public static function config(Typecho_Widget_Helper_Form $form)
     {
         $pageSize = new Typecho_Widget_Helper_Form_Element_Text(
-            'pageSize', null, '',
+            'pageSize', null, '10',
             '分页数量', '每页显示的日志数量');
         $isDrop = new Typecho_Widget_Helper_Form_Element_Radio(
             'isDrop', array(
                 '0' => '删除',
                 '1' => '不删除',
-            ), '', '删除数据表:', '请选择是否在禁用插件时，删除日志数据表');
+            ), '1', '删除数据表:', '请选择是否在禁用插件时，删除日志数据表');
+        $canAnalytize = new Typecho_Widget_Helper_Form_Element_Radio(
+            'canAnalytize', array(
+                '0' => '不允许',
+                '1' => '允许',
+            ), '1', '允许统计使用情况:', '请选择是否允许插件作者统计使用情况');
         $form->addInput($pageSize);
         $form->addInput($isDrop);
+        $form->addInput($canAnalytize);
     }
 
     public static function personalConfig(Typecho_Widget_Helper_Form $form)
@@ -94,48 +102,42 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
     }
 
-    public static function hasLogin()
-    {
-        $cookieUid = Typecho_Cookie::get('__typecho_uid');
-        if (null !== $cookieUid) {
-            $db = Typecho_Db::get();
-            $user = $db->fetchRow($db->select()->from('table.users')
-                    ->where('uid = ?', intval($cookieUid))
-                    ->limit(1));
-
-            $cookieAuthCode = Typecho_Cookie::get('__typecho_authCode');
-            if ($user && Typecho_Common::hashValidate($user['authCode'], $cookieAuthCode)) {
-                return true;
-            }
-            Typecho_Cookie::delete('__typecho_uid');
-            Typecho_Cookie::delete('__typecho_authCode');
-        }
-        return false;
-    }
-
     public static function start()
     {
-        if (self::hasLogin()) {
+        require_once __DIR__ . '/Access.php';
+        $extend = new Access_Extend();
+        if ($extend->isAdmin()) {
             return;
         }
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
 
         $request = Typecho_Request::getInstance();
         $ip = $request->getIp();
-        $url = $_SERVER['REQUEST_URI'];
+        $url = $request->getServer('REQUEST_URI');
         if ($ip == null) {
-            $ip = 'UnKnow';
+            $ip = 'UnKnown';
         }
         $options = Typecho_Widget::widget('Widget_Options');
         $timeStamp = $options->gmtTime;
         $offset = $options->timezone - $options->serverTimezone;
         $gtime = $timeStamp + $offset;
         $db = Typecho_Db::get();
+        $referer = Typecho_Cookie::get('__typecho_access_referer');
+        if ($referer == null) {
+            $referer = $request->getReferer();
+            if (strpos($referer, rtrim(Helper::options()->siteUrl, '/')) !== false) {
+                $referer = null;
+            }
+            if ($referer != null) {
+                Typecho_Cookie::set('__typecho_access_referer', $referer);
+            }
+        }
+
         $rows = array(
             'ua' => $request->getAgent(),
             'url' => $url,
             'ip' => $ip,
-            'referer' => $request->getReferer(),
+            'referer' => $referer,
             'referer_domain' => parse_url($request->getReferer(), PHP_URL_HOST),
             'date' => $gtime,
         );
