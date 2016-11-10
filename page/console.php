@@ -2,25 +2,25 @@
 include_once 'common.php';
 include 'header.php';
 include 'menu.php';
-require dirname(__FILE__) . '/../Access.php';
-$extend = new Access_Extend();
+require_once __DIR__ . '/../Access_Bootstrap.php';
+$access = new Access_Core();
 ?>
 <link rel="stylesheet" href="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.css')?>">
 <div class="main">
     <div class="body container">
         <div class="typecho-page-title">
-           <h2><?php echo $extend->title;?></h2>
+           <h2><?php echo $access->title;?></h2>
         </div>
         <div class="row typecho-page-main" role="main">
              <div class="col-mb-12">
                 <ul class="typecho-option-tabs fix-tabs clearfix">
-                    <li<?=($extend->action == 'overview' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=overview'); ?>"><?php _e('访问概览'); ?></a></li>
-                    <li<?=($extend->action == 'logs' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('访问日志'); ?></a></li>
+                    <li<?=($access->action == 'overview' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=overview'); ?>"><?php _e('访问概览'); ?></a></li>
+                    <li<?=($access->action == 'logs' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('访问日志'); ?></a></li>
                     <li><a href="<?php $options->adminUrl('options-plugin.php?config=Access') ?>"><?php _e('插件设置'); ?></a></li>
                 </ul>
             </div>
 
-            <?php if($extend->action == 'logs'):?>
+            <?php if($access->action == 'logs'):?>
 
             <div class="col-mb-12 typecho-list">
                 <div class="typecho-list-operate clearfix">
@@ -41,12 +41,11 @@ $extend = new Access_Extend();
                             <?php if(isset($request->page)): ?>
                             <input type="hidden" value="<?php echo $request->get('page'); ?>" name="page" />
                             <?php endif; ?>
-                            <select name="type">
+                            <select data-action="filter" name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
                                 <option <?php if($request->type == 3): ?> selected="true"<?php endif; ?>value="3"><?php _e('所有'); ?></option>
                             </select>
-                            <button type="submit" class="btn btn-s"><?php _e('筛选'); ?></button>
                         </div>
                     </form>
                 </div><!-- end .typecho-list-operate -->
@@ -73,12 +72,12 @@ $extend = new Access_Extend();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php if(!empty($extend->logs['list'])): ?>
-                            <?php foreach ($extend->logs['list'] as $log): ?>
+                            <?php if(!empty($access->logs['list'])): ?>
+                            <?php foreach ($access->logs['list'] as $log): ?>
                             <tr id="<?php echo $log['id']; ?>" data-id="<?php echo $log['id']; ?>">
                                 <td><input type="checkbox" data-id="<?php echo $log['id']; ?>" value="<?php echo $log['id']; ?>" name="id[]"/></td>
                                 <td><a target="_blank" href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
-                                <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $extend->parseUA($log['ua']); ?></a></td>
+                                <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $access->parser->getBrowser($log['ua']); ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo $log['ip']; ?>" href="#"><?php echo $log['ip']; ?></a></td>
                                 <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
                                 <td><?php echo date('Y-m-d H:i:s',$log['date']); ?></td>                   
@@ -108,16 +107,16 @@ $extend = new Access_Extend();
                         </div>
                         
 
-                        <?php if($extend->logs['rows'] > 1): ?>
+                        <?php if($access->logs['rows'] > 1): ?>
                         <ul class="typecho-pager">
-                            <?php echo $extend->logs['page']; ?>
+                            <?php echo $access->logs['page']; ?>
                         </ul>
                         <?php endif; ?>
                     </form>
                 </div><!-- end .typecho-list-operate -->
             </div><!-- end .typecho-list -->
 
-            <?php elseif($extend->action == 'overview'):?>
+            <?php elseif($access->action == 'overview'):?>
 
            
                 
@@ -144,21 +143,21 @@ $extend = new Access_Extend();
                         <tbody>
                             <tr>
                                 <td>今日</td>
-                                <td><?php echo $extend->overview['pv']['today']['total'];?></td>
-                                <td><?php echo $extend->overview['uv']['today']['total'];?></td>
-                                <td><?php echo $extend->overview['ip']['today']['total'];?></td>            
+                                <td><?php echo $access->overview['pv']['today']['total'];?></td>
+                                <td><?php echo $access->overview['uv']['today']['total'];?></td>
+                                <td><?php echo $access->overview['ip']['today']['total'];?></td>            
                             </tr>
                             <tr>
                                 <td>昨日</td>
-                                <td><?php echo $extend->overview['pv']['yesterday']['total'];?></td>
-                                <td><?php echo $extend->overview['uv']['yesterday']['total'];?></td>
-                                <td><?php echo $extend->overview['ip']['yesterday']['total'];?></td>         
+                                <td><?php echo $access->overview['pv']['yesterday']['total'];?></td>
+                                <td><?php echo $access->overview['uv']['yesterday']['total'];?></td>
+                                <td><?php echo $access->overview['ip']['yesterday']['total'];?></td>         
                             </tr>
                             <tr>
                                 <td>总计</td>
-                                <td><?php echo $extend->overview['pv']['all']['total'];?></td>
-                                <td><?php echo $extend->overview['uv']['all']['total'];?></td>
-                                <td><?php echo $extend->overview['ip']['all']['total'];?></td>
+                                <td><?php echo $access->overview['pv']['all']['total'];?></td>
+                                <td><?php echo $access->overview['uv']['all']['total'];?></td>
+                                <td><?php echo $access->overview['ip']['all']['total'];?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -181,7 +180,7 @@ $extend = new Access_Extend();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($extend->referer['domain'] as $key => $value):?>
+                            <?php foreach ($access->referer['domain'] as $key => $value):?>
                             <tr>
                                 <td><?php echo $key +1 ?></td>
                                 <td><?php echo $value['count']?></td>
@@ -209,7 +208,7 @@ $extend = new Access_Extend();
                             </tr>
                         </thead>
                         <tbody>
-                            <?php foreach ($extend->referer['url'] as $key => $value):?>
+                            <?php foreach ($access->referer['url'] as $key => $value):?>
                             <tr>
                                 <td><?php echo $key +1 ?></td>
                                 <td><?php echo $value['count']?></td>
@@ -340,17 +339,21 @@ $(document).ready(function() {
         var t = $(this);
         t.parents('.dropdown-menu').hide().prev().removeClass('active');
     });
+
+    $('form select[data-action="filter"]').change(function() {
+        $(this).parents('form').submit();
+    });
 });
 </script>
 <script src="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.min.js')?>"></script>
-<?php if($extend->action == 'overview'):?>
+<?php if($access->action == 'overview'):?>
 <script src="<?php $options->pluginUrl('Access/lib/highcharts/js/highcharts.js')?>"></script>
 <script src="<?php $options->pluginUrl('Access/lib/highcharts/js/modules/exporting.js')?>"></script>
 <script type="text/javascript">
 $(document).ready(function() {
     $('#chart').highcharts({
         title: {
-            text: '<?php echo $extend->overview['chart']['title']['text'];?>',
+            text: '<?php echo $access->overview['chart']['title']['text'];?>',
             x: -20 //center
         },
         subtitle: {
@@ -358,7 +361,7 @@ $(document).ready(function() {
             x: -20
         },
         xAxis: {
-            categories: <?php echo $extend->overview['chart']['xAxis']['categories'];?>
+            categories: <?php echo $access->overview['chart']['xAxis']['categories'];?>
         },
         yAxis: {
             title: {
@@ -373,28 +376,30 @@ $(document).ready(function() {
         tooltip: {
             valueSuffix: ''
         },
-        legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle',
-            borderWidth: 0
+        plotOptions: {
+            line: {
+                dataLabels: {
+                    enabled: true
+                },
+                enableMouseTracking: false
+            }
         },
         series: [{
             name: 'PV',
-            data: <?php echo $extend->overview['chart']['series']['pv'];?>
+            data: <?php echo $access->overview['chart']['series']['pv'];?>
         }, {
             name: 'UV',
-            data: <?php echo $extend->overview['chart']['series']['uv'];?>
+            data: <?php echo $access->overview['chart']['series']['uv'];?>
         }, {
             name: 'IP',
-            data: <?php echo $extend->overview['chart']['series']['ip'];?>
+            data: <?php echo $access->overview['chart']['series']['ip'];?>
         }]
     });
 });
 
 </script>
 <?php endif;?>
-<?php if (Typecho_Widget::widget('Widget_Options')->plugin('Access') == 1):?>
+<?php if ($access->config->cancanAnalytize == 1):?>
 <script type="text/javascript">
   var _paq = _paq || [];
   _paq.push(['trackPageView']);

@@ -4,7 +4,7 @@
  *
  * @package Access
  * @author Kokororin
- * @version 1.4
+ * @version 1.5
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
@@ -16,7 +16,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Helper::addRoute("access_delete_logs", "/access/log/delete", "Access_Action", 'deleteLogs');
-        Typecho_Plugin::factory('Widget_Archive')->header = array('Access_Plugin', 'start');
+        Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'start');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
         return _t($msg);
     }
@@ -95,6 +95,10 @@ class Access_Plugin implements Typecho_Plugin_Interface
             if (('Mysql' == $type && $code == (1050 || '42S01'))) {
                 $script = 'SELECT * from `' . $prefix . 'access`';
                 $installDb->query($script, Typecho_Db::READ);
+                if (!array_key_exists('referer', $installDb->fetchRow($installDb->select()->from('table.access')))) {
+                    $installDb->query('ALTER TABLE `' . $prefix . 'access` ADD `referer` varchar(255) NULL AFTER `ip`, ADD `referer_domain` varchar(100) NULL AFTER `referer`;');
+                    return '数据表结构已更新，插件启用成功，' . $configLink;
+                }
                 return '数据表已存在，插件启用成功，' . $configLink;
             } else {
                 throw new Typecho_Plugin_Exception('数据表建立失败，插件启用失败。错误号：' . $code);
@@ -102,11 +106,11 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
     }
 
-    public static function start()
+    public static function start($archive)
     {
-        require_once __DIR__ . '/Access.php';
-        $extend = new Access_Extend();
-        if ($extend->isAdmin()) {
+        require_once __DIR__ . '/Access_Bootstrap.php';
+        $access = new Access_Core();
+        if ($access->isAdmin()) {
             return;
         }
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
