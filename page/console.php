@@ -254,7 +254,7 @@ $(document).ready(function() {
     $('a[data-action="ip"]').click(function() {
         swal({   
             title: "IP查询中...",   
-            text: '正在请求Taobao API...',   
+            text: '正在查询...',   
             type: "info",  
             confirmButtonText: "OK" 
         });
@@ -267,7 +267,7 @@ $(document).ready(function() {
                 if (data.code == 0) {
                     swal({   
                         title: "IP查询成功",   
-                        text: data.data.country + data.data.area + data.data.city + data.data.country + data.data.isp,   
+                        text: data.data,   
                         type: "success",  
                         confirmButtonText: "OK" 
                         });               
@@ -314,7 +314,7 @@ $(document).ready(function() {
                     return swal("错误", "你并没有勾选任何内容", "warning");
                 }
                 $.ajax({
-                    url: '<?php echo rtrim(Helper::options()->index, '/').'/access/log/delete';?>',
+                    url: '<?php echo rtrim(Helper::options()->index, '/').'/access/log/delete.json';?>',
                     method: 'post',
                     dataType: 'json',
                     contentType: 'application/json',
