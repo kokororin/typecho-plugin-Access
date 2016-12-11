@@ -4,7 +4,7 @@
  *
  * @package Access
  * @author Kokororin
- * @version 1.6
+ * @version 1.5
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
@@ -14,11 +14,9 @@ class Access_Plugin implements Typecho_Plugin_Interface
     {
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
-        Helper::addRoute("access_write_logs", "/access/log/write.json", "Access_Action", 'writeLogs');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
-        Helper::addRoute("access_delete_logs", "/access/log/delete.json", "Access_Action", 'deleteLogs');
-        Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
-        Typecho_Plugin::factory('Widget_Archive')->footer = array('Access_Plugin', 'frontend');
+        Helper::addRoute("access_delete_logs", "/access/log/delete", "Access_Action", 'deleteLogs');
+        Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'start');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
         return _t($msg);
     }
@@ -33,7 +31,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
             $db->query("DROP TABLE `" . $prefix . "access`", Typecho_Db::WRITE);
         }
         Helper::removePanel(1, self::$panel);
-        Helper::removeRoute("access_write_logs");
         Helper::removeRoute("access_ip");
         Helper::removeRoute("access_delete_logs");
     }
@@ -48,11 +45,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
                 '0' => '删除',
                 '1' => '不删除',
             ), '1', '删除数据表:', '请选择是否在禁用插件时，删除日志数据表');
-        $writeType = new Typecho_Widget_Helper_Form_Element_Radio(
-            'writeType', array(
-                '0' => '后端',
-                '1' => '前端',
-            ), '0', '日志写入类型:', '请选择日志写入类型，数据量大时（几万以上），后端写入可能会拖慢博客访问速度');
         $canAnalytize = new Typecho_Widget_Helper_Form_Element_Radio(
             'canAnalytize', array(
                 '0' => '不允许',
@@ -60,7 +52,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
             ), '1', '允许统计使用情况:', '请选择是否允许插件作者统计使用情况');
         $form->addInput($pageSize);
         $form->addInput($isDrop);
-        $form->addInput($writeType);
         $form->addInput($canAnalytize);
     }
 
@@ -101,10 +92,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             return '成功创建数据表，插件启用成功，' . $configLink;
         } catch (Typecho_Db_Exception $e) {
             $code = $e->getCode();
-            if ($type != 'Mysql') {
-                throw new Typecho_Plugin_Exception('你的适配器为' . $type . '，目前只支持Mysql');
-            }
-            if ($code == (1050 || '42S01')) {
+            if (('Mysql' == $type && $code == (1050 || '42S01'))) {
                 $script = 'SELECT * from `' . $prefix . 'access`';
                 $installDb->query($script, Typecho_Db::READ);
                 if (!array_key_exists('referer', $installDb->fetchRow($installDb->select()->from('table.access')))) {
@@ -115,29 +103,50 @@ class Access_Plugin implements Typecho_Plugin_Interface
             } else {
                 throw new Typecho_Plugin_Exception('数据表建立失败，插件启用失败。错误号：' . $code);
             }
-        } catch (Exception $e) {
-            throw new Typecho_Plugin_Exception($e->getMessage());
         }
     }
 
-    public static function backend($archive)
+    public static function start($archive)
     {
         require_once __DIR__ . '/Access_Bootstrap.php';
         $access = new Access_Core();
-        $access->getReferer();
+        if ($access->isAdmin()) {
+            return;
+        }
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
 
-        if ($config->writeType == 0) {
-            $access->writeLogs();
+        $request = Typecho_Request::getInstance();
+        $ip = $request->getIp();
+        $url = $request->getServer('REQUEST_URI');
+        if ($ip == null) {
+            $ip = 'UnKnown';
         }
-    }
+        $options = Typecho_Widget::widget('Widget_Options');
+        $timeStamp = $options->gmtTime;
+        $offset = $options->timezone - $options->serverTimezone;
+        $gtime = $timeStamp + $offset;
+        $db = Typecho_Db::get();
+        $referer = Typecho_Cookie::get('__typecho_access_referer');
+        if ($referer == null) {
+            $referer = $request->getReferer();
+            if (strpos($referer, rtrim(Helper::options()->siteUrl, '/')) !== false) {
+                $referer = null;
+            }
+            if ($referer != null) {
+                Typecho_Cookie::set('__typecho_access_referer', $referer);
+            }
+        }
 
-    public static function frontend()
-    {
-        $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
-        if ($config->writeType == 1) {
-            echo '<script type="text/javascript">(function(){var xhr=new XMLHttpRequest();xhr.open("GET","' . rtrim(Helper::options()->index, '/') . '/access/log/write.json?u="+location.pathname+location.search+location.hash' . ',true);xhr.send();})();</script>';
-        }
+        $rows = array(
+            'ua' => $request->getAgent(),
+            'url' => $url,
+            'ip' => $ip,
+            'referer' => $referer,
+            'referer_domain' => parse_url($request->getReferer(), PHP_URL_HOST),
+            'date' => $gtime,
+        );
+        $db->query($db->insert('table.access')->rows($rows));
+
     }
 
     public static function adminFooter()

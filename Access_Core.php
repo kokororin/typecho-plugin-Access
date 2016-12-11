@@ -9,7 +9,6 @@ class Access_Core
     protected $prefix;
     protected $table;
     public $config;
-    protected $response;
     protected $request;
     protected $pageSize;
     protected $isDrop;
@@ -26,7 +25,6 @@ class Access_Core
         $this->prefix = $this->db->getPrefix();
         $this->table = $this->prefix . 'access';
         $this->config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
-        $this->response = Typecho_Response::getInstance();
         $this->request = Typecho_Request::getInstance();
         $this->pageSize = $this->config->pageSize;
         $this->isDrop = $this->config->isDrop;
@@ -176,50 +174,6 @@ class Access_Core
                     ->where('id = ?', $id)
             );
         }
-    }
-
-    public function getReferer()
-    {
-        $referer = Typecho_Cookie::get('__typecho_access_referer');
-        if ($referer == null) {
-            $referer = $this->request->getReferer();
-            if (strpos($referer, rtrim(Helper::options()->siteUrl, '/')) !== false) {
-                $referer = null;
-            }
-            if ($referer != null) {
-                Typecho_Cookie::set('__typecho_access_referer', $referer);
-            }
-        }
-        return $referer;
-    }
-
-    public function writeLogs($url = null)
-    {
-        if ($this->isAdmin()) {
-            return;
-        }
-        $ip = $this->request->getIp();
-        if ($url == null) {
-            $url = $this->request->getServer('REQUEST_URI');
-        }
-        if ($ip == null) {
-            $ip = 'UnKnown';
-        }
-
-        $timeStamp = Helper::options()->gmtTime;
-        $offset = Helper::options()->timezone - Helper::options()->serverTimezone;
-        $gtime = $timeStamp + $offset;
-        $referer = $this->getReferer();
-        $rows = array(
-            'ua' => $this->request->getAgent(),
-            'url' => $url,
-            'ip' => $ip,
-            'referer' => $referer,
-            'referer_domain' => parse_url($this->request->getReferer(), PHP_URL_HOST),
-            'date' => $gtime,
-        );
-
-        $this->db->query($this->db->insert('table.access')->rows($rows));
     }
 
 }

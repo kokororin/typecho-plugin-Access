@@ -22,32 +22,17 @@ class Access_Action implements Widget_Interface_Do
     {
     }
 
-    public function writeLogs()
-    {
-        $this->access->writeLogs($this->request->u);
-        $this->response->setStatus(206);
-        exit;
-    }
-
     public function ip()
     {
         $this->response->setContentType('application/json');
         try {
             $this->checkAuth();
             $ip = $this->request->get('ip');
-            $response = Access_Ip::find($ip);
-            if (is_array($response)) {
-                $response = array(
-                    'code' => 0,
-                    'data' => implode(' ', $response),
-                );
-            } else {
-                $response = array(
-                    'code' => 100,
-                    'message' => '解析ip失败',
-                );
+            $response = file_get_contents('http://ip.taobao.com/service/getIpInfo.php?ip=' . $ip);
+            if (!$response) {
+                throw new Exception('HTTP request failed');
             }
-            exit(Json::encode($response));
+            exit($response);
         } catch (Exception $e) {
             exit(Json::encode(array(
                 'code' => 100,
