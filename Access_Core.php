@@ -84,6 +84,8 @@ class Access_Core
 
         $this->logs['list'] = $this->db->fetchAll("SELECT * FROM {$this->table} {$where} ORDER BY id DESC LIMIT {$this->pageSize} OFFSET {$offset}");
 
+        $this->cleanArray($this->logs['list']);
+
         $this->logs['rows'] = count($this->db->fetchAll("SELECT * FROM {$this->table} {$where}"));
 
         $page = new Access_Page($this->pageSize, $this->logs['rows'], $p, 10, array(
@@ -98,6 +100,7 @@ class Access_Core
     {
         $this->referer['url'] = $this->db->fetchAll("SELECT DISTINCT referer, COUNT(*) as count FROM {$this->table} WHERE referer <> '' GROUP BY referer ORDER BY count DESC LIMIT {$this->pageSize}");
         $this->referer['domain'] = $this->db->fetchAll("SELECT DISTINCT referer_domain, COUNT(*) as count FROM {$this->table} WHERE referer_domain <> '' GROUP BY referer_domain ORDER BY count DESC LIMIT {$this->pageSize}");
+        $this->cleanArray($this->referer);
     }
 
     protected function parseOverview()
@@ -146,6 +149,19 @@ class Access_Core
         $this->overview['chart']['series']['uv'] = $this->buildObject($this->overview['uv']['today']['hours'], false);
         $this->overview['chart']['series']['ip'] = $this->buildObject($this->overview['ip']['today']['hours'], false);
 
+    }
+
+    protected function cleanArray(&$array)
+    {
+        if (is_array($array)) {
+            foreach ($array as &$value) {
+                if (!is_array($value)) {
+                    $value = htmlspecialchars(urldecode($value));
+                } else {
+                    $this->cleanArray($value);
+                }
+            }
+        }
     }
 
     protected function buildObject($array, $quote)
@@ -215,7 +231,7 @@ class Access_Core
             'url' => $url,
             'ip' => $ip,
             'referer' => $referer,
-            'referer_domain' => parse_url($this->request->getReferer(), PHP_URL_HOST),
+            'referer_domain' => parse_url($referer, PHP_URL_HOST),
             'date' => $gtime,
         );
 
