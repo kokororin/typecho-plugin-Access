@@ -50,6 +50,7 @@ class Access_Parser
         'Fish search',
         'crawler',
         'bingbot',
+        'YisouSpider',
     );
 
     protected $currentBot = null;
@@ -97,6 +98,9 @@ class Access_Parser
             $browser = '360浏览器 ' . $matches[1];
         } elseif (preg_match('#Maxthon( |\/)([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Maxthon ' . $matches[2];
+        } elseif (preg_match('#Edge/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
+            //Win10中Microsoft Edge浏览器
+            $browser = 'Edge ' . $matches[1];
         } elseif (preg_match('#Chrome/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Chrome ' . $matches[1];
         } elseif (preg_match('#XiaoMi/MiuiBrowser/([0-9.]+)#i', $ua, $matches)) {
@@ -116,9 +120,6 @@ class Access_Parser
             $browser = 'Internet Explorer ' . $matches[1];
         } elseif (preg_match('#Trident#', $ua, $matches)) {
             $browser = 'Internet Explorer 11';
-        } elseif (preg_match('#Edge/12.0#i', $ua, $matches)) {
-            //win10中spartan浏览器
-            $browser = 'Spartan';
         } elseif (preg_match('#(Firefox|Phoenix|Firebird|BonEcho|GranParadiso|Minefield|Iceweasel)/([a-zA-Z0-9.]+)#i', $ua, $matches)) {
             $browser = 'Firefox ' . $matches[2];
         } else {
