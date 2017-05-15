@@ -82,7 +82,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
   `id` int(10) unsigned NOT NULL auto_increment,
   `ua` varchar(255) default NULL,
   `url` varchar(64) default NULL,
-  `ip` varchar(16) default NULL,
+  `ip` varchar(48) default NULL,
   `referer` varchar(255) default NULL,
   `referer_domain` varchar(100) default NULL,
   `date` int(10) unsigned default '0',

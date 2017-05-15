@@ -235,7 +235,9 @@ class Access_Core
             'date' => $gtime,
         );
 
-        $this->db->query($this->db->insert('table.access')->rows($rows));
+        try {
+            $this->db->query($this->db->insert('table.access')->rows($rows));
+        } catch (Exception $e) {} catch (Typecho_Db_Query_Exception $e) {}
     }
 
 }
