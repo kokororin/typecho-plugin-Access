@@ -274,7 +274,7 @@ $(document).ready(function() {
                 } else {
                     swal({   
                         title: "IP查询失败",   
-                        text: '接口返回状态码错误',   
+                        text: data.data,   
                         type: "warning",  
                         confirmButtonText: "OK" 
                         }); 
@@ -326,12 +326,12 @@ $(document).ready(function() {
                                 $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
                             });
                         } else {
-                            swal({   
-                                title: "错误",   
-                                text: '发生错误了',   
-                                type: "warning",  
-                                confirmButtonText: "OK" 
-                                }); 
+                            swal({
+                                title: "错误",
+                                text: '发生错误了',
+                                type: "warning",
+                                confirmButtonText: "OK"
+                            }); 
                         }
                     }
                 });

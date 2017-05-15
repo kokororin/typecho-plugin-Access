@@ -32,9 +32,9 @@ class Access_Action implements Widget_Interface_Do
     public function ip()
     {
         $this->response->setContentType('application/json');
+        $ip = $this->request->get('ip');
         try {
             $this->checkAuth();
-            $ip = $this->request->get('ip');
             $response = Access_Ip::find($ip);
             if (is_array($response)) {
                 $response = array(
@@ -42,18 +42,27 @@ class Access_Action implements Widget_Interface_Do
                     'data' => implode(' ', $response),
                 );
             } else {
+                throw new Exception('解析ip失败');
+            }
+        } catch (Exception $e) {
+            try {
+                $http = Typecho_Http_Client::get();
+                $result = $http->send('https://tools.keycdn.com/geo.json?host=' . $ip);
+                $result = Json::decode($result, true);
+                if ($result['status'] == 'success') {
+                    $response = array(
+                        'code' => 0,
+                        'data' => $result['data']['geo']['country_name'] . ' ' . $result['data']['geo']['city'],
+                    );
+                }
+            } catch (Exception $e) {
                 $response = array(
                     'code' => 100,
-                    'message' => '解析ip失败',
+                    'data' => '很抱歉，ipip.net查询无结果，同时你的服务器无法连接fallback接口(tools.keycdn.com)',
                 );
             }
-            exit(Json::encode($response));
-        } catch (Exception $e) {
-            exit(Json::encode(array(
-                'code' => 100,
-                'message' => $e->getMessage(),
-            )));
         }
+        exit(Json::encode($response));
     }
 
     public function deleteLogs()
@@ -67,16 +76,18 @@ class Access_Action implements Widget_Interface_Do
                 throw new Exception('params invalid');
             }
             $this->access->deleteLogs($data);
-            exit(Json::encode(array(
+            $response = array(
                 'code' => 0,
-            )));
+            );
 
         } catch (Exception $e) {
-            exit(Json::encode(array(
+            $response = array(
                 'code' => 100,
-                'message' => $e->getMessage(),
-            )));
+                'data' => $e->getMessage(),
+            );
         }
+
+        exit(Json::encode($response));
     }
 
     protected function checkAuth()
