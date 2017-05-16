@@ -399,7 +399,7 @@ $(document).ready(function() {
 
 </script>
 <?php endif;?>
-<?php if ($access->config->cancanAnalytize == 1):?>
+<?php if ($access->config->canAnalytize == 1):?>
 <script type="text/javascript">
   var _paq = _paq || [];
   _paq.push(['trackPageView']);
