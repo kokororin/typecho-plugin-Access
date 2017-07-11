@@ -137,7 +137,7 @@ class Access_Parser
             foreach ($this->bots as $val) {
                 if (($val == 'Bot' || $val == 'Spider')
                 && (preg_match('#([a-zA-Z0-9]+(bot|spider))[ /]*([0-9.]*)#i', $ua, $matches))) {
-                    $this->currentBot = $matches[1] . $matches[2];
+                    $this->currentBot = $matches[1] . ' ' . $matches[3];
                     return true;
                 }
                 $str = $this->filter($val);
