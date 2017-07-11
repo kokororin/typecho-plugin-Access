@@ -51,6 +51,8 @@ class Access_Parser
         'crawler',
         'bingbot',
         'YisouSpider',
+        'Bot',
+        'Spider',
     );
 
     protected $currentBot = null;
@@ -138,6 +140,10 @@ class Access_Parser
                     $this->currentBot = $str;
                     return true;
                 }
+            }
+            if (preg_match('#([a-zA-Z0-9]+(bot|spider))[ /]*([0-9.]*)#i', $ua, $matches)) {
+                $this->currentBot = $matches[1] . $matches[2];
+                return true;
             }
         } else {
             return false;
