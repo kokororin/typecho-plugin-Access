@@ -184,7 +184,7 @@ $access = new Access_Core();
                             <tr>
                                 <td><?php echo $key +1 ?></td>
                                 <td><?php echo $value['count']?></td>
-                                <td><?php echo $value['referer_domain']?></td>          
+                                <td><?php echo $value['value']?></td>
                             </tr>
                             <?php endforeach;?>
                         </tbody>
@@ -212,7 +212,7 @@ $access = new Access_Core();
                             <tr>
                                 <td><?php echo $key +1 ?></td>
                                 <td><?php echo $value['count']?></td>
-                                <td><?php echo $value['referer']?></td>          
+                                <td><?php echo $value['value']?></td>          
                             </tr>
                             <?php endforeach;?>
                         </tbody>
