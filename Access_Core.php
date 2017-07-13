@@ -9,11 +9,11 @@ class Access_Core
     protected $prefix;
     protected $table;
     public $config;
-    protected $response;
     protected $request;
+    protected $response;
     protected $pageSize;
     protected $isDrop;
-    public $parser;
+    public $ua;
     public $action;
     public $title;
     public $logs = array();
@@ -22,73 +22,68 @@ class Access_Core
 
     public function __construct()
     {
-        $this->db = Typecho_Db::get();
-        $this->prefix = $this->db->getPrefix();
-        $this->table = $this->prefix . 'access';
-        $this->config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
-        $this->response = Typecho_Response::getInstance();
-        $this->request = Typecho_Request::getInstance();
-        $this->pageSize = $this->config->pageSize;
-        $this->isDrop = $this->config->isDrop;
-        if ($this->pageSize == null || $this->isDrop == null) {
-            throw new Typecho_Plugin_Exception('请先设置插件！');
+        # Load language pack
+        if (Typecho_I18n::getLang() != 'zh_CN') {
+            $file = __TYPECHO_ROOT_DIR__ . __TYPECHO_PLUGIN_DIR__ .
+                    '/Access/lang/' . Typecho_I18n::getLang() . '.mo';
+            file_exists($file) && Typecho_I18n::addLang($file);
         }
-        $this->parser = new Access_Parser();
+        # Init variables
+        $this->db       = Typecho_Db::get();
+        $this->table    = $this->db->getPrefix() . 'access_log';
+        $this->config   = Typecho_Widget::widget('Widget_Options')->plugin('Access');
+        $this->request  = Typecho_Request::getInstance();
+        $this->response = Typecho_Response::getInstance();
+        $this->pageSize = $this->config->pageSize;
+        $this->isDrop   = $this->config->isDrop;
+        if ($this->pageSize == null || $this->isDrop == null) {
+            throw new Typecho_Plugin_Exception(_t('请先设置插件！'));
+        }
+        $this->ua = new Access_UA($this->request->getAgent());
         switch ($this->request->get('action')) {
-            case 'logs':
-            default:
-                $this->action = 'logs';
-                $this->title = '访问日志';
-                $this->parseLogs();
-                break;
             case 'overview':
                 $this->action = 'overview';
-                $this->title = '访问概览';
+                $this->title = _t('访问概览');
                 $this->parseOverview();
                 $this->parseReferer();
                 break;
-        }
-    }
-
-    protected function getWhere($type)
-    {
-        $where_str = '';
-        foreach ($this->parser->bots as $value) {
-            $where_str .= "replace(LOWER(`ua`), ' ', '') {1} LIKE " . "'%{$this->parser->filter($value)}%' {2} ";
-        }
-        $where_str = rtrim($where_str, '{2} ');
-        switch ($type) {
-            case 1:
-                $where = str_replace('{1}', 'NOT', $where_str);
-                $where = str_replace('{2}', 'and', $where);
-                break;
-            case 2:
-                $where = str_replace('{1}', '', $where_str);
-                $where = str_replace('{2}', 'or', $where);
-                break;
-            case 3:
-                $where = '1=1';
-                break;
+            case 'logs':
             default:
-                throw new Typecho_Plugin_Exception('参数不正确！');
+                $this->action = 'logs';
+                $this->title = _t('访问日志');
+                $this->parseLogs();
+                break;
         }
-        return 'WHERE ' . $where;
     }
 
     protected function parseLogs()
     {
         $type = $this->request->get('type', 1);
-        $p = $this->request->get('page', 1);
-        $offset = (max(intval($p), 1) - 1) * $this->pageSize;
-        $where = $this->getWhere($type);
-
-        $this->logs['list'] = $this->db->fetchAll("SELECT * FROM {$this->table} {$where} ORDER BY id DESC LIMIT {$this->pageSize} OFFSET {$offset}");
+        $pagenum = $this->request->get('page', 1);
+        $offset = (max(intval($pagenum), 1) - 1) * $this->pageSize;
+        $query = $this->db->select()->from('table.access_log')
+                    ->order('time', Typecho_Db::SORT_DESC)
+                    ->offset($offset)->limit($this->pageSize);
+        $qcount = $this->db->select('count(1) AS count')->from('table.access_log');
+        switch ($type) {
+            case 1:
+                $query->where('robot = ?', 0);
+                $qcount->where('robot = ?', 0);
+                break;
+            case 2:
+                $query->where('robot = ?', 1);
+                $qcount->where('robot = ?', 0);
+                break;
+            default:
+                break;
+        }
+        $this->logs['list'] = $this->db->fetchAll($query);
 
         $this->cleanArray($this->logs['list']);
 
-        $this->logs['rows'] = count($this->db->fetchAll("SELECT * FROM {$this->table} {$where}"));
-
-        $page = new Access_Page($this->pageSize, $this->logs['rows'], $p, 10, array(
+        $this->logs['rows'] = $this->db->fetchAll($qcount)[0]['count'];
+        
+        $page = new Access_Page($this->pageSize, $this->logs['rows'], $pagenum, 10, array(
             'panel' => Access_Plugin::$panel,
             'action' => 'logs',
             'type' => $type,
@@ -119,11 +114,11 @@ class Access_Core
             $today = date("Y-m-d");
             $start = strtotime(date("{$today} {$i}:00:00"));
             $end = strtotime(date("{$today} {$i}:59:59"));
-            $this->overview['ip']['today']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['ip']['today']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['ip']['today']['total'] += $this->overview['ip']['today']['hours'][$i];
-            $this->overview['uv']['today']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['uv']['today']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['uv']['today']['total'] += $this->overview['uv']['today']['hours'][$i];
-            $this->overview['pv']['today']['hours'][] = count($this->db->fetchAll("SELECT ip FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['pv']['today']['hours'][] = count($this->db->fetchAll("SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['pv']['today']['total'] += $this->overview['pv']['today']['hours'][$i];
         }
 
@@ -131,11 +126,11 @@ class Access_Core
             $yesterday = date("Y-m-d", time() - 24 * 60 * 60);
             $start = strtotime(date("{$yesterday} {$i}:00:00"));
             $end = strtotime(date("{$yesterday} {$i}:59:59"));
-            $this->overview['ip']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['ip']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['ip']['yesterday']['total'] += $this->overview['ip']['yesterday']['hours'][$i];
-            $this->overview['uv']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['uv']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['uv']['yesterday']['total'] += $this->overview['uv']['yesterday']['hours'][$i];
-            $this->overview['pv']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT ip FROM {$this->table} {$where} AND date BETWEEN {$start} AND {$end}"));
+            $this->overview['pv']['yesterday']['hours'][] = count($this->db->fetchAll("SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
             $this->overview['pv']['yesterday']['total'] += $this->overview['pv']['yesterday']['hours'][$i];
         }
 
@@ -189,24 +184,24 @@ class Access_Core
     {
         foreach ($ids as $id) {
             $this->db->query($this->db->delete($this->table)
-                    ->where('id = ?', $id)
+                     ->where('id = ?', $id)
             );
         }
     }
 
-    public function getReferer()
+    public function getEntryPoint()
     {
-        $referer = Typecho_Cookie::get('__typecho_access_referer');
-        if ($referer == null) {
-            $referer = $this->request->getReferer();
-            if (strpos($referer, rtrim(Helper::options()->siteUrl, '/')) !== false) {
-                $referer = null;
+        $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+        if ($entrypoint == null) {
+            $entrypoint = $this->request->getReferer();
+            if (strpos($entrypoint, rtrim(Helper::options()->siteUrl, '/')) !== false) {
+                $entrypoint = null;
             }
-            if ($referer != null) {
-                Typecho_Cookie::set('__typecho_access_referer', $referer);
+            if ($entrypoint != null) {
+                Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
             }
         }
-        return $referer;
+        return $entrypoint;
     }
 
     public function writeLogs($url = null)
@@ -214,29 +209,41 @@ class Access_Core
         if ($this->isAdmin()) {
             return;
         }
-        $ip = $this->request->getIp();
         if ($url == null) {
             $url = $this->request->getServer('REQUEST_URI');
         }
+        $ip = $this->request->getIp();
         if ($ip == null) {
-            $ip = 'UnKnown';
+            $ip = '0.0.0.0';
         }
-
-        $timeStamp = Helper::options()->gmtTime;
-        $offset = Helper::options()->timezone - Helper::options()->serverTimezone;
-        $gtime = $timeStamp + $offset;
-        $referer = $this->getReferer();
+        $ip = bindec(decbin(ip2long($ip)));
+        
+        $entrypoint = $this->getEntryPoint();
+        $referer    = $this->request->getReferer();
+        $time       = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
         $rows = array(
-            'ua' => $this->request->getAgent(),
-            'url' => $url,
-            'ip' => $ip,
-            'referer' => $referer,
-            'referer_domain' => parse_url($referer, PHP_URL_HOST),
-            'date' => $gtime,
+            'ua'                => $this->ua->getUA(),
+            'browser_id'        => $this->ua->getBrowserID(),
+            'browser_version'   => $this->ua->getBrowserVersion(),
+            'os_id'             => $this->ua->getOSID(),
+            'os_version'        => $this->ua->getOSVersion(),
+            'url'               => $url,
+            'path'              => parse_url($url, PHP_URL_PATH),
+            'query_string'      => parse_url($url, PHP_URL_QUERY),
+            'ip'                => $ip,
+            'referer'           => $referer,
+            'referer_domain'    => parse_url($referer, PHP_URL_HOST),
+            'entrypoint'        => $entrypoint,
+            'entrypoint_domain' => parse_url($entrypoint, PHP_URL_HOST),
+            'time'              => $time,
+            // 'content_id'        => ,
+            'robot'             => $this->ua->isRobot() ? 1 : 0,
+            'robot_id'          => $this->ua->getRobotID(),
+            'robot_version'     => $this->ua->getRobotVersion(),
         );
 
         try {
-            $this->db->query($this->db->insert('table.access')->rows($rows));
+            $this->db->query($this->db->insert('table.access_log')->rows($rows));
         } catch (Exception $e) {} catch (Typecho_Db_Query_Exception $e) {}
     }
 

@@ -1,19 +1,28 @@
 <?php
 /**
- * 获取访客信息
+ * 获取访客信息，生成统计图表，由<a href="https://zhaiyiming.com/">@一名宅</a> 部分优化重构。
  *
  * @package Access
  * @author Kokororin
- * @version 1.6
+ * @version 2.0.0
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
 {
+    public const VERSION = 2;
     public static $panel = 'Access/page/console.php';
+    
+    /**
+     * 激活插件方法,如果激活失败,直接抛出异常
+     *
+     * @access public
+     * @return string
+     * @throws Typecho_Plugin_Exception
+     */
     public static function activate()
     {
         $msg = Access_Plugin::install();
-        Helper::addPanel(1, self::$panel, 'Access控制台', 'Access插件控制台', 'subscriber');
+        Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
         Helper::addRoute("access_write_logs", "/access/log/write.json", "Access_Action", 'writeLogs');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Helper::addRoute("access_delete_logs", "/access/log/delete.json", "Access_Action", 'deleteLogs');
@@ -23,14 +32,20 @@ class Access_Plugin implements Typecho_Plugin_Interface
         return _t($msg);
     }
 
+    /**
+     * 禁用插件方法,如果禁用失败,直接抛出异常
+     *
+     * @static
+     * @access public
+     * @return void
+     * @throws Typecho_Plugin_Exception
+     */
     public static function deactivate()
     {
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
-        $isDrop = $config->isDrop;
-        if ($isDrop == 0) {
+        if ($config->isDrop == 0) {
             $db = Typecho_Db::get();
-            $prefix = $db->getPrefix();
-            $db->query("DROP TABLE `" . $prefix . "access`", Typecho_Db::WRITE);
+            $db->query("DROP TABLE `{$db->getPrefix()}access_log`", Typecho_Db::WRITE);
         }
         Helper::removePanel(1, self::$panel);
         Helper::removeRoute("access_write_logs");
@@ -38,6 +53,13 @@ class Access_Plugin implements Typecho_Plugin_Interface
         Helper::removeRoute("access_delete_logs");
     }
 
+    /**
+     * 获取插件配置面板
+     *
+     * @access public
+     * @param Typecho_Widget_Helper_Form $form 配置面板
+     * @return void
+     */
     public static function config(Typecho_Widget_Helper_Form $form)
     {
         $pageSize = new Typecho_Widget_Helper_Form_Element_Text(
@@ -64,67 +86,99 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $form->addInput($canAnalytize);
     }
 
-    public static function personalConfig(Typecho_Widget_Helper_Form $form)
-    {
-    }
+    /**
+     * 个人用户的配置面板
+     *
+     * @access public
+     * @param Typecho_Widget_Helper_Form $form
+     * @return void
+     */
+    public static function personalConfig(Typecho_Widget_Helper_Form $form) { }
 
+    /**
+     * 初始化以及升级插件数据库，如初始化失败,直接抛出异常
+     *
+     * @access public
+     * @return string
+     * @throws Typecho_Plugin_Exception
+     */
     public static function install()
     {
-        $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access' . '">请设置</a>';
         if (substr(trim(dirname(__FILE__), '/'), -6) != 'Access') {
-            throw new Typecho_Plugin_Exception('插件目录名必须为Access');
+            throw new Typecho_Plugin_Exception(_t('插件目录名必须为Access'));
         }
-        $installDb = Typecho_Db::get();
-        $type = explode('_', $installDb->getAdapterName());
-        $type = array_pop($type);
-        $prefix = $installDb->getPrefix();
-        $scripts = "CREATE TABLE `typecho_access` (
-  `id` int(10) unsigned NOT NULL auto_increment,
-  `ua` varchar(255) default NULL,
-  `url` varchar(64) default NULL,
-  `ip` varchar(48) default NULL,
-  `referer` varchar(255) default NULL,
-  `referer_domain` varchar(100) default NULL,
-  `date` int(10) unsigned default '0',
-  PRIMARY KEY  (`id`)
-) ENGINE=MYISAM  DEFAULT CHARSET=%charset%;";
+        $db = Typecho_Db::get();
+        $adapterName = $db->getAdapterName();
+        if (false === strpos($adapterName, 'Mysql')) {
+            throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql', $adapterName));
+        }
+        
+        $prefix  = $db->getPrefix();
+        $scripts = file_get_contents('usr/plugins/Access/sql/Mysql.sql');
         $scripts = str_replace('typecho_', $prefix, $scripts);
         $scripts = str_replace('%charset%', 'utf8', $scripts);
         $scripts = explode(';', $scripts);
         try {
-            foreach ($scripts as $script) {
-                $script = trim($script);
-                if ($script) {
-                    $installDb->query($script, Typecho_Db::WRITE);
+            $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
+            # 初始化数据库如果不存在
+            if (!$db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+                foreach ($scripts as $script) {
+                    $script = trim($script);
+                    if ($script) {
+                        $db->query($script, Typecho_Db::WRITE);
+                    }
                 }
+                $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
             }
-            return '成功创建数据表，插件启用成功，' . $configLink;
+            # 处理旧版本数据
+            if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+                require_once __DIR__ . '/Access_Bootstrap.php';
+                $rows = $db->fetchAll($db->select()->from('table.access'));
+                foreach ($rows as $row) {
+                    $ua   = new Access_UA($row['ua']);
+                    $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
+                    $row['browser_id'       ] = $ua->getBrowserID();
+                    $row['browser_version'  ] = $ua->getBrowserVersion();
+                    $row['os_id'            ] = $ua->getOSID();
+                    $row['os_version'       ] = $ua->getOSVersion();
+                    $row['path'             ] = parse_url($row['url'], PHP_URL_PATH);
+                    $row['query_string'     ] = parse_url($row['url'], PHP_URL_QUERY);
+                    $row['ip'               ] = bindec(decbin(ip2long($row['ip'])));
+                    $row['entrypoint'       ] = $row['referer'];
+                    $row['entrypoint_domain'] = $row['referer_domain'];
+                    $row['time'             ] = $row['date'];
+                    $row['robot'            ] = $ua->isRobot() ? 1 : 0;
+                    $row['robot_id'         ] = $ua->getRobotID();
+                    $row['robot_version'    ] = $ua->getRobotVersion();
+                    unset($row['date']);
+                    try {
+                        $db->query($db->insert('table.access_log')->rows($row));
+                    } catch (Typecho_Db_Exception $e) {
+                        if ($e->getCode() != 23000)
+                            throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+                    }
+                }
+                $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
+                $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
+            }
+            return $msg;
         } catch (Typecho_Db_Exception $e) {
-            $code = $e->getCode();
-            if ($type != 'Mysql') {
-                throw new Typecho_Plugin_Exception('你的适配器为' . $type . '，目前只支持Mysql');
-            }
-            if ($code == (1050 || '42S01')) {
-                $script = 'SELECT * from `' . $prefix . 'access`';
-                $installDb->query($script, Typecho_Db::READ);
-                if (!array_key_exists('referer', $installDb->fetchRow($installDb->select()->from('table.access')))) {
-                    $installDb->query('ALTER TABLE `' . $prefix . 'access` ADD `referer` varchar(255) NULL AFTER `ip`, ADD `referer_domain` varchar(100) NULL AFTER `referer`;');
-                    return '数据表结构已更新，插件启用成功，' . $configLink;
-                }
-                return '数据表已存在，插件启用成功，' . $configLink;
-            } else {
-                throw new Typecho_Plugin_Exception('数据表建立失败，插件启用失败。错误号：' . $code);
-            }
+            throw new Typecho_Plugin_Exception(_t('数据表建立失败，插件启用失败，错误信息：%s。', $e->getMessage()));
         } catch (Exception $e) {
             throw new Typecho_Plugin_Exception($e->getMessage());
         }
     }
 
+    /**
+     * 获取后端统计，该统计方法可以统计到一切访问
+     *
+     * @access public
+     * @return void
+     */
     public static function backend($archive)
     {
         require_once __DIR__ . '/Access_Bootstrap.php';
         $access = new Access_Core();
-        $access->getReferer();
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
 
         if ($config->writeType == 0) {
@@ -132,11 +186,19 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
     }
 
+    /**
+     * 获取前端统计，该方法要求客户端必须渲染网页，所以不能统计RSS等直接抓取PHP页面的方式
+     *
+     * @access public
+     * @return void
+     */
     public static function frontend()
     {
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
         if ($config->writeType == 1) {
-            echo '<script type="text/javascript">(function(){var xhr=new XMLHttpRequest();xhr.open("GET","' . rtrim(Helper::options()->index, '/') . '/access/log/write.json?u="+location.pathname+location.search+location.hash' . ',true);xhr.send();})();</script>';
+            $index = rtrim(Helper::options()->index, '/');
+            echo '<script type="text/javascript">(function(){var xhr=new XMLHttpRequest();xhr.open("GET","' .
+                 "{$index}/access/log/write.json?u=\"+location.pathname+location.search+location.hash,true);xhr.send();})();</script>";
         }
     }
 
@@ -148,8 +210,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
             echo '<script>
 $(document).ready(function() {
   $("#start-link").append("<li><a href=\"';
-            Helper::options()->adminUrl('extending.php?panel=' . Access_Plugin::$panel);
-            echo '\">Access控制台</a></li>");
+            Helper::options()->adminUrl('extending.php?panel=' . self::$panel);
+            echo '\">'. _t('Access控制台') . '</a></li>");
 });
 </script>';
         }
