@@ -84,6 +84,23 @@ class Access_Core
                 break;
         }
         $this->logs['list'] = $this->db->fetchAll($query);
+        foreach ($this->logs['list'] as &$row) {
+            $ua = new Access_UA($row['ua']);
+            if ($ua->isRobot()) {
+                $name = $ua->getRobotID();
+                $version = $ua->getRobotVersion();
+            } else {
+                $name = $ua->getBrowserName();
+                $version = $ua->getBrowserVersion();
+            }
+            if ($name == '') {
+                $row['display_name'] = _t('未知');
+            } elseif ($version == '') {
+                $row['display_name'] = $name;
+            } else {
+                $row['display_name'] = $name . ' / ' . $version;
+            }
+        }
 
         $this->htmlEncode($this->logs['list']);
 

@@ -77,7 +77,7 @@ $access = new Access_Core();
                             <tr id="<?php echo $log['id']; ?>" data-id="<?php echo $log['id']; ?>">
                                 <td><input type="checkbox" data-id="<?php echo $log['id']; ?>" value="<?php echo $log['id']; ?>" name="id[]"/></td>
                                 <td><a target="_blank" href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
-                                <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $access->ua->getBrowserName() . ' / ' . $access->ua->getBrowserVersion(); ?></a></td>
+                                <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $log['display_name']; ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo long2ip($log['ip']); ?>" href="#"><?php echo long2ip($log['ip']); ?></a></td>
                                 <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
                                 <td><?php echo date('Y-m-d H:i:s',$log['time']); ?></td>                   
