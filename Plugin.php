@@ -135,7 +135,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
                 require_once __DIR__ . '/Access_Bootstrap.php';
                 $rows = $db->fetchAll($db->select()->from('table.access'));
                 foreach ($rows as $row) {
-                    $ua   = new Access_UA($row['ua']);
+                    $ua = new Access_UA($row['ua']);
                     $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
                     $row['browser_id'       ] = $ua->getBrowserID();
                     $row['browser_version'  ] = $ua->getBrowserVersion();
