@@ -78,7 +78,7 @@ class Access_Core
                 break;
             case 2:
                 $query->where('robot = ?', 1);
-                $qcount->where('robot = ?', 0);
+                $qcount->where('robot = ?', 1);
                 break;
             default:
                 break;
