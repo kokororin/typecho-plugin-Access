@@ -112,10 +112,10 @@ class Access_UA
                         $this->robotVersion = $val;
                     }
                 }
-                $this->robotID = $this->robotName = '';
-            } else {
-                $this->robotID = $this->robotName = '';
             }
+            if ($this->robotID      == null) $this->robotID      = '';
+            if ($this->robotName    == null) $this->robotName    = '';
+            if ($this->robotVersion == null) $this->robotVersion = '';
         }
         return $this->robotID !== '' || $this->robotName !== '';
     }
