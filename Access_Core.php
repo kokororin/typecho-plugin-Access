@@ -357,6 +357,33 @@ class Access_Core
     }
 
     /**
+     * 重新刷数据库，当遇到一些算法变更时可能需要用到
+     *
+     * @access public
+     * @return void
+     * @throws Typecho_Plugin_Exception
+     */
+    public static function rewriteLogs() {
+        $db = Typecho_Db::get();
+        $rows = $db->fetchAll($db->select()->from('table.access_log'));
+        foreach ($rows as $row) {
+            $ua = new Access_UA($row['ua']);
+            $row['browser_id'       ] = $ua->getBrowserID();
+            $row['browser_version'  ] = $ua->getBrowserVersion();
+            $row['os_id'            ] = $ua->getOSID();
+            $row['os_version'       ] = $ua->getOSVersion();
+            $row['robot'            ] = $ua->isRobot() ? 1 : 0;
+            $row['robot_id'         ] = $ua->getRobotID();
+            $row['robot_version'    ] = $ua->getRobotVersion();
+            try {
+                $db->query($db->update('table.access_log')->rows($row)->where('id = ?', $row['id']));
+            } catch (Typecho_Db_Exception $e) {
+                throw new Typecho_Plugin_Exception(_t('刷新数据库失败：%s。', $e->getMessage()));
+            }
+        }
+    }
+
+    /**
      * 解析archive对象
      * 
      * @access public
