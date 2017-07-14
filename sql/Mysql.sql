@@ -32,7 +32,5 @@ CREATE TABLE `typecho_access_log` (
   KEY `idx_entrypoint`        (`entrypoint`       ),
   KEY `idx_entrypoint_domain` (`entrypoint_domain`),
   KEY `idx_referer`           (`referer`          ),
-  KEY `idx_referer_domain`    (`referer_domain`   ),
-  CONSTRAINT `typecho_access_log_ibfk_cid` FOREIGN KEY (`content_id`) REFERENCES `typecho_contents` (`cid`) ON DELETE SET NULL ON UPDATE CASCADE,
-  CONSTRAINT `typecho_access_log_ibfk_mid` FOREIGN KEY (`meta_id`   ) REFERENCES `typecho_metas`    (`mid`) ON DELETE SET NULL ON UPDATE CASCADE
+  KEY `idx_referer_domain`    (`referer_domain`   )
 ) ENGINE=InnoDB DEFAULT CHARSET=%charset%;

@@ -9,7 +9,6 @@
  */
 class Access_Plugin implements Typecho_Plugin_Interface
 {
-    public const VERSION = 2;
     public static $panel = 'Access/page/console.php';
     
     /**
