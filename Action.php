@@ -24,9 +24,10 @@ class Access_Action implements Widget_Interface_Do
 
     public function writeLogs()
     {
-        $this->access->writeLogs($this->request->u);
-        $this->response->setStatus(206);
-        exit;
+        $image = base64_decode('R0lGODlhAQABAIAAAAAAAP///yH5BAQUAP8ALAAAAAABAAEAAAICRAEAOw==');
+        $this->response->setContentType('image/gif');
+        $this->access->writeLogs(null, $this->request->u, $this->request->cid, $this->request->mid);
+        echo $image;
     }
 
     public function ip()

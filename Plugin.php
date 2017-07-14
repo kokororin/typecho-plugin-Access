@@ -22,7 +22,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
     {
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
-        Helper::addRoute("access_write_logs", "/access/log/write.json", "Access_Action", 'writeLogs');
+        Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Helper::addRoute("access_delete_logs", "/access/log/delete.json", "Access_Action", 'deleteLogs');
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
@@ -47,7 +47,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             $db->query("DROP TABLE `{$db->getPrefix()}access_log`", Typecho_Db::WRITE);
         }
         Helper::removePanel(1, self::$panel);
-        Helper::removeRoute("access_write_logs");
+        Helper::removeRoute("access_track_gif");
         Helper::removeRoute("access_ip");
         Helper::removeRoute("access_delete_logs");
     }
@@ -181,7 +181,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
 
         if ($config->writeType == 0) {
-            $access->writeLogs();
+            $access->writeLogs($archive);
         }
     }
 
@@ -191,13 +191,15 @@ class Access_Plugin implements Typecho_Plugin_Interface
      * @access public
      * @return void
      */
-    public static function frontend()
+    public static function frontend($archive)
     {
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
         if ($config->writeType == 1) {
             $index = rtrim(Helper::options()->index, '/');
-            echo '<script type="text/javascript">(function(){var xhr=new XMLHttpRequest();xhr.open("GET","' .
-                 "{$index}/access/log/write.json?u=\"+location.pathname+location.search+location.hash,true);xhr.send();})();</script>";
+            $access = new Access_Core();
+            $parsedArchive = $access->parseArchive($archive);
+            // TODO 兼容pjax
+            echo "<script type=\"text/javascript\">(function(){var t=function(){var i=new Image();i.src='{$index}/access/log/track.gif?u='+location.pathname+location.search+location.hash+'&cid={$parsedArchive['content_id']}&mid={$parsedArchive['meta_id']}';};t();})();</script>";
         }
     }
 
