@@ -83,8 +83,8 @@ class Access_Core
             default:
                 break;
         }
-        $this->logs['list'] = $this->db->fetchAll($query);
-        foreach ($this->logs['list'] as &$row) {
+        $list = $this->db->fetchAll($query);
+        foreach ($list as &$row) {
             $ua = new Access_UA($row['ua']);
             if ($ua->isRobot()) {
                 $name = $ua->getRobotID();
@@ -101,8 +101,7 @@ class Access_Core
                 $row['display_name'] = $name . ' / ' . $version;
             }
         }
-
-        $this->htmlEncode($this->logs['list']);
+        $this->logs['list'] = $this->htmlEncode($this->urlDecode($list));
 
         $this->logs['rows'] = $this->db->fetchAll($qcount)[0]['count'];
         
@@ -128,7 +127,7 @@ class Access_Core
         $this->referer['domain'] = $this->db->fetchAll($this->db->select('DISTINCT entrypoint_domain AS value, COUNT(1) as count')
             ->from('table.access_log')->where("entrypoint_domain <> ''")->group('entrypoint_domain')
             ->order('count', Typecho_Db::SORT_DESC)->limit($this->config->pageSize));
-        $this->htmlEncode($this->referer);
+        $this->referer = $this->htmlEncode($this->urlDecode($this->referer));
     }
 
     /**
@@ -191,20 +190,58 @@ class Access_Core
     }
 
     /**
-     * 转义特殊字符，防止XSS等攻击
-     *
-     * @access public
-     * @return void
+     * 编码数组中的字符串为 HTML 实体
+     * 默认只有数组的值被编码，下标不被编码
+     * 如果数据类型是数组，那么它的所有子元素都将被递归编码
+     * 只有字符串类型才会被编码
+     * @param array $data 将要被编码的数据
+     * @param bool $valuesOnly 是否只编码数组数值，如果为 false 那么所有下标和值都将被编码
+     * @param string $charset 字符串编码方式，默认为 UTF-8
+     * @return array 编码后的数据
+     * @see http://www.php.net/manual/en/function.htmlspecialchars.php
      */
-    protected function htmlEncode(&$variable)
+    protected function htmlEncode($data, $valuesOnly = true, $charset = 'UTF-8')
     {
-        if (is_array($variable)) {
-            foreach ($variable as &$value) {
-                $this->htmlEncode($value);
+        if (is_array($data)) {
+            $d = [];
+            foreach ($data as $key => $value) {
+                if (!$valuesOnly) {
+                    $key = $this->htmlEncode($key, $valuesOnly, $charset);
+                }
+                $d[$key] = $this->htmlEncode($value, $valuesOnly, $charset);
             }
-        } elseif (is_string($variable)) {
-            $variable = htmlspecialchars(urldecode($variable));
+            $data = $d;
+        } elseif (is_string($data)) {
+            $data = htmlspecialchars($data, ENT_QUOTES | ENT_SUBSTITUTE, $charset);
         }
+        return $data;
+    }
+
+    /**
+     * 解析所有 URL 编码过的字符
+     * 默认只有数组的值被解码，下标不被解码
+     * 如果数据类型是数组，那么它的所有子元素都将被递归解码
+     * 只有字符串类型才会被解码
+     * @param array $data 将要被解码的数据
+     * @param bool $valuesOnly 是否只解码数组数值，如果为 false 那么所有下标和值都将被解码
+     * @return array 解码后的数据
+     * @see http://www.php.net/manual/en/function.urldecode.php
+     */
+    protected function urlDecode($data, $valuesOnly = true)
+    {
+        if (is_array($data)) {
+            $d = [];
+            foreach ($data as $key => $value) {
+                if (!$valuesOnly) {
+                    $key = $this->urlDecode($key, $valuesOnly);
+                }
+                $d[$key] = $this->urlDecode($value, $valuesOnly);
+            }
+            $data = $d;
+        } elseif (is_string($data)) {
+            $data = urldecode($data);
+        }
+        return $data;
     }
 
     /**
@@ -246,15 +283,15 @@ class Access_Core
      */
     public function getEntryPoint()
     {
-        $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+        $entrypoint = $this->request->getReferer();
         if ($entrypoint == null) {
-            $entrypoint = $this->request->getReferer();
-            if (strpos($entrypoint, rtrim(Helper::options()->siteUrl, '/')) !== false) {
-                $entrypoint = null;
-            }
-            if ($entrypoint != null) {
-                Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
-            }
+            $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+        }
+        if (parse_url($entrypoint, PHP_URL_HOST) == parse_url(Helper::options()->siteUrl, PHP_URL_HOST)) {
+            $entrypoint = null;
+        }
+        if ($entrypoint != null) {
+            Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
         }
         return $entrypoint;
     }
@@ -317,6 +354,33 @@ class Access_Core
         try {
             $this->db->query($this->db->insert('table.access_log')->rows($rows));
         } catch (Exception $e) {} catch (Typecho_Db_Query_Exception $e) {}
+    }
+
+    /**
+     * 重新刷数据库，当遇到一些算法变更时可能需要用到
+     *
+     * @access public
+     * @return void
+     * @throws Typecho_Plugin_Exception
+     */
+    public static function rewriteLogs() {
+        $db = Typecho_Db::get();
+        $rows = $db->fetchAll($db->select()->from('table.access_log'));
+        foreach ($rows as $row) {
+            $ua = new Access_UA($row['ua']);
+            $row['browser_id'       ] = $ua->getBrowserID();
+            $row['browser_version'  ] = $ua->getBrowserVersion();
+            $row['os_id'            ] = $ua->getOSID();
+            $row['os_version'       ] = $ua->getOSVersion();
+            $row['robot'            ] = $ua->isRobot() ? 1 : 0;
+            $row['robot_id'         ] = $ua->getRobotID();
+            $row['robot_version'    ] = $ua->getRobotVersion();
+            try {
+                $db->query($db->update('table.access_log')->rows($row)->where('id = ?', $row['id']));
+            } catch (Typecho_Db_Exception $e) {
+                throw new Typecho_Plugin_Exception(_t('刷新数据库失败：%s。', $e->getMessage()));
+            }
+        }
     }
 
     /**
