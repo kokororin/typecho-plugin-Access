@@ -249,7 +249,7 @@ class Access_Core
         $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
         if ($entrypoint == null) {
             $entrypoint = $this->request->getReferer();
-            if (strpos($entrypoint, rtrim(Helper::options()->siteUrl, '/')) !== false) {
+            if (parse_url($entrypoint, PHP_URL_HOST) == parse_url(Helper::options()->siteUrl, PHP_URL_HOST)) {
                 $entrypoint = null;
             }
             if ($entrypoint != null) {
