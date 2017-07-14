@@ -102,14 +102,13 @@ class Access_UA
     {
         if ($this->robotID === null) {
             if (!empty($this->ua)) {
-                if (preg_match('#([a-zA-Z0-9]+\s*(?:bot|spider))[ /]*([0-9.]*)#i', $this->ua, $matches)) {
+                if (preg_match('#([a-zA-Z0-9]+\s*(?:bot|spider))[ /v]*([0-9.]*)#i', $this->ua, $matches)) {
                     $this->robotID = $this->robotName = $matches[1];
                     $this->robotVersion = $matches[2];
                 }
                 foreach (self::$robots as $val) {
                     if (strpos($this->ual, $this->filter($val)) !== false) {
                         $this->robotID = $this->robotName = $val;
-                        $this->robotVersion = '';
                     }
                 }
             }
