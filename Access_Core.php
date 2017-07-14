@@ -246,15 +246,15 @@ class Access_Core
      */
     public function getEntryPoint()
     {
-        $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+        $entrypoint = $this->request->getReferer();
         if ($entrypoint == null) {
-            $entrypoint = $this->request->getReferer();
-            if (parse_url($entrypoint, PHP_URL_HOST) == parse_url(Helper::options()->siteUrl, PHP_URL_HOST)) {
-                $entrypoint = null;
-            }
-            if ($entrypoint != null) {
-                Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
-            }
+            $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+        }
+        if (parse_url($entrypoint, PHP_URL_HOST) == parse_url(Helper::options()->siteUrl, PHP_URL_HOST)) {
+            $entrypoint = null;
+        }
+        if ($entrypoint != null) {
+            Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
         }
         return $entrypoint;
     }
