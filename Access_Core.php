@@ -265,7 +265,7 @@ class Access_Core
      * @access public
      * @return void
      */
-    public function writeLogs($url = null)
+    public function writeLogs($archive = null, $url = null, $content_id = null, $meta_id = null)
     {
         if ($this->isAdmin()) {
             return;
@@ -282,6 +282,16 @@ class Access_Core
         $entrypoint = $this->getEntryPoint();
         $referer    = $this->request->getReferer();
         $time       = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
+
+        if ($archive != null) {
+            $parsedArchive = $this->parseArchive($archive);
+            $content_id = $parsedArchive['content_id'];
+            $meta_id = $parsedArchive['meta_id'];
+        } else {
+            $content_id = is_numeric($content_id) ? $content_id : null;
+            $meta_id = is_numeric($meta_id) ? $meta_id : null;
+        }
+
         $rows = array(
             'ua'                => $this->ua->getUA(),
             'browser_id'        => $this->ua->getBrowserID(),
@@ -297,7 +307,8 @@ class Access_Core
             'entrypoint'        => $entrypoint,
             'entrypoint_domain' => parse_url($entrypoint, PHP_URL_HOST),
             'time'              => $time,
-            // 'content_id'        => ,
+            'content_id'        => $content_id,
+            'meta_id'           => $meta_id,
             'robot'             => $this->ua->isRobot() ? 1 : 0,
             'robot_id'          => $this->ua->getRobotID(),
             'robot_version'     => $this->ua->getRobotVersion(),
@@ -306,6 +317,32 @@ class Access_Core
         try {
             $this->db->query($this->db->insert('table.access_log')->rows($rows));
         } catch (Exception $e) {} catch (Typecho_Db_Query_Exception $e) {}
+    }
+
+    /**
+     * 解析archive对象
+     * 
+     * @access public
+     * @return array
+     */
+    public function parseArchive($archive) {
+        // 暂定首页的meta_id为0
+        $content_id = null;
+        $meta_id = null;
+        if ($archive->is('index')) {
+            $meta_id = 0;
+        } elseif ($archive->is('post') || $archive->is('page')) {
+            $content_id = $archive->cid;
+        } elseif ($archive->is('tag')) {
+            $meta_id = $archive->tags[0]['mid'];
+        } elseif ($archive->is('category')) {
+            $meta_id = $archive->categories[0]['mid'];
+        } elseif ($archive->is('archive', 404)) {}
+
+        return array(
+            'content_id'    => $content_id,
+            'meta_id'       => $meta_id,
+        );
     }
 
 }
