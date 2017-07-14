@@ -65,6 +65,8 @@ class Access_Core
     protected function parseLogs()
     {
         $type = $this->request->get('type', 1);
+        $filter = $this->request->get('filter', 'all');
+        $content = $this->request->get('content', '');
         $pagenum = $this->request->get('page', 1);
         $offset = (max(intval($pagenum), 1) - 1) * $this->config->pageSize;
         $query = $this->db->select()->from('table.access_log')
@@ -81,6 +83,13 @@ class Access_Core
                 $qcount->where('robot = ?', 1);
                 break;
             default:
+                break;
+        }
+        switch ($filter) {
+            case 'ip':
+                $ip = bindec(decbin(ip2long($content)));
+                $query->where('ip = ?', $ip);
+                $qcount->where('ip = ?', $ip);
                 break;
         }
         $list = $this->db->fetchAll($query);

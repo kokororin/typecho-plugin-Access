@@ -24,8 +24,8 @@ $access = new Access_Core();
 
             <div class="col-mb-12 typecho-list">
                 <div class="typecho-list-operate clearfix">
-                    <form method="get">
-                        
+                    <form method="get" class="search-form">
+
                         <div class="operate">
                             <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
                             <div class="btn-group btn-drop">
@@ -33,23 +33,33 @@ $access = new Access_Core();
                                 <ul class="dropdown-menu">
                                     <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
                                 </ul>
-                            </div>  
+                            </div>
                         </div>
-                        
+
                         <div class="search" role="search">
+                            <?php if ('' != $request->content && in_array($request->filter, array('', 'ip'))): ?>
+                            <a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('&laquo; 取消筛选'); ?></a>
+                            <?php endif; ?>
                             <input type="hidden" value="<?php echo $request->get('panel'); ?>" name="panel" />
                             <?php if(isset($request->page)): ?>
                             <input type="hidden" value="<?php echo $request->get('page'); ?>" name="page" />
                             <?php endif; ?>
-                            <select data-action="filter" name="type">
+                            <select name="filter">
+                                <option <?php if($request->filter == 'ip'): ?> selected="true"<?php endif; ?>value="all"><?php _e('所有'); ?></option>
+                                <option <?php if($request->filter == 'ip'): ?> selected="true"<?php endif; ?>value="ip"><?php _e('按IP'); ?></option>
+                            </select>
+                            <input type="text" class="text-s" placeholder="<?php _e('过滤器'); ?>" value="<?php echo htmlspecialchars($request->content); ?>" name="content" />
+                            <select name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
                                 <option <?php if($request->type == 3): ?> selected="true"<?php endif; ?>value="3"><?php _e('所有'); ?></option>
                             </select>
+                             <input type="hidden" name="page" value="1">
+                             <button type="button" class="btn btn-s"><?php _e('筛选'); ?></button>
                         </div>
                     </form>
                 </div><!-- end .typecho-list-operate -->
-            
+
                 <form method="post" name="manage_posts" class="operate-form">
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
@@ -80,7 +90,7 @@ $access = new Access_Core();
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $log['display_name']; ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo long2ip($log['ip']); ?>" href="#"><?php echo long2ip($log['ip']); ?></a></td>
                                 <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
-                                <td><?php echo date('Y-m-d H:i:s',$log['time']); ?></td>                   
+                                <td><?php echo date('Y-m-d H:i:s',$log['time']); ?></td>
                             </tr>
                             <?php endforeach; ?>
                             <?php else: ?>
@@ -95,7 +105,7 @@ $access = new Access_Core();
 
                 <div class="typecho-list-operate clearfix">
                     <form method="get">
-                    
+
                         <div class="operate">
                             <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
                             <div class="btn-group btn-drop">
@@ -103,9 +113,9 @@ $access = new Access_Core();
                                 <ul class="dropdown-menu">
                                     <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
                                 </ul>
-                            </div>         
+                            </div>
                         </div>
-                        
+
 
                         <?php if($access->logs['rows'] > 1): ?>
                         <ul class="typecho-pager">
@@ -118,12 +128,12 @@ $access = new Access_Core();
 
             <?php elseif($access->action == 'overview'):?>
 
-           
-                
+
+
             <div class="col-mb-12 typecho-list">
 
                <h4 class="typecho-list-table-title">访问数表格</h4>
-            
+
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
                         <colgroup>
@@ -145,13 +155,13 @@ $access = new Access_Core();
                                 <td>今日</td>
                                 <td><?php echo $access->overview['pv']['today']['total'];?></td>
                                 <td><?php echo $access->overview['uv']['today']['total'];?></td>
-                                <td><?php echo $access->overview['ip']['today']['total'];?></td>            
+                                <td><?php echo $access->overview['ip']['today']['total'];?></td>
                             </tr>
                             <tr>
                                 <td>昨日</td>
                                 <td><?php echo $access->overview['pv']['yesterday']['total'];?></td>
                                 <td><?php echo $access->overview['uv']['yesterday']['total'];?></td>
-                                <td><?php echo $access->overview['ip']['yesterday']['total'];?></td>         
+                                <td><?php echo $access->overview['ip']['yesterday']['total'];?></td>
                             </tr>
                             <tr>
                                 <td>总计</td>
@@ -164,7 +174,7 @@ $access = new Access_Core();
                 </div>
 
                <h4 class="typecho-list-table-title">来源域名</h4>
-            
+
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
                         <colgroup>
@@ -192,7 +202,7 @@ $access = new Access_Core();
                 </div>
 
                <h4 class="typecho-list-table-title">来源页</h4>
-            
+
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
                         <colgroup>
@@ -212,7 +222,7 @@ $access = new Access_Core();
                             <tr>
                                 <td><?php echo $key +1 ?></td>
                                 <td><?php echo $value['count']?></td>
-                                <td><?php echo $value['value']?></td>          
+                                <td><?php echo $value['value']?></td>
                             </tr>
                             <?php endforeach;?>
                         </tbody>
@@ -222,7 +232,7 @@ $access = new Access_Core();
                  <h4 class="typecho-list-table-title">今日图表</h4>
 
                   <div class="typecho-table-wrap" id="chart">
-                    
+
                 </div>
 
             </div><!-- end .typecho-list -->
@@ -242,21 +252,21 @@ include 'table-js.php';
 <script type="text/javascript">
 $(document).ready(function() {
     $('a[data-action="ua"]').click(function() {
-        swal({   
-            title: "User-Agent",   
-            text: $.trim($(this).attr('title')),   
-            type: "info",  
-            confirmButtonText: "OK" 
+        swal({
+            title: "User-Agent",
+            text: $.trim($(this).attr('title')),
+            type: "info",
+            confirmButtonText: "OK"
         });
         return false;
     });
 
     $('a[data-action="ip"]').click(function() {
-        swal({   
-            title: "IP查询中...",   
-            text: '正在查询...',   
-            type: "info",  
-            confirmButtonText: "OK" 
+        swal({
+            title: "IP查询中...",
+            text: '正在查询...',
+            type: "info",
+            confirmButtonText: "OK"
         });
         $.ajax({
             url: '<?php echo rtrim(Helper::options()->index, '/').'/access/ip.json';?>',
@@ -265,28 +275,28 @@ $(document).ready(function() {
             data: {ip: $(this).data('ip')},
             success: function(data) {
                 if (data.code == 0) {
-                    swal({   
-                        title: "IP查询成功",   
-                        text: data.data,   
-                        type: "success",  
-                        confirmButtonText: "OK" 
-                        });               
+                    swal({
+                        title: "IP查询成功",
+                        text: data.data,
+                        type: "success",
+                        confirmButtonText: "OK"
+                    });
                 } else {
-                    swal({   
-                        title: "IP查询失败",   
-                        text: data.data,   
-                        type: "warning",  
-                        confirmButtonText: "OK" 
-                        }); 
+                    swal({
+                        title: "IP查询失败",
+                        text: data.data,
+                        type: "warning",
+                        confirmButtonText: "OK"
+                    });
                 }
             },
             error: function() {
-                    swal({   
-                        title: "IP查询失败",   
-                        text: '网络异常或PHP环境配置异常',   
-                        type: "warning",  
-                        confirmButtonText: "OK" 
-                    }); 
+                swal({
+                    title: "IP查询失败",
+                    text: '网络异常或PHP环境配置异常',
+                    type: "warning",
+                    confirmButtonText: "OK"
+                });
             }
         });
         return false;
@@ -331,17 +341,41 @@ $(document).ready(function() {
                                 text: '发生错误了',
                                 type: "warning",
                                 confirmButtonText: "OK"
-                            }); 
+                            });
                         }
                     }
                 });
         });
-        var t = $(this);
-        t.parents('.dropdown-menu').hide().prev().removeClass('active');
+        var $this = $(this);
+        $this.parents('.dropdown-menu').hide().prev().removeClass('active');
     });
 
-    $('form select[data-action="filter"]').change(function() {
-        $(this).parents('form').submit();
+    $('form.search-form button[type="button"]').on('click', function() {
+        var $form = $('form.search-form');
+        var $contentInput = $form.find('input[name="content"]');
+        var $filterSelect = $form.find('select[name="filter"]');
+
+        var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+        if ($filterSelect.val() == 'ip' && !ipRegex.test($contentInput.val())) {
+            return swal({
+                title: "筛选条件错误",
+                text: 'IP地址不合法',
+                type: "warning",
+                confirmButtonText: "OK"
+            });
+        }
+
+        if ($filterSelect.val() == 'all' && $contentInput.val() != '') {
+            return swal({
+                title: "筛选条件错误",
+                text: '不选择筛选条件填什么啦！',
+                type: "warning",
+                confirmButtonText: "OK"
+            });
+        }
+
+        $form.submit();
     });
 });
 </script>
