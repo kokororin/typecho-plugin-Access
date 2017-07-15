@@ -66,7 +66,8 @@ class Access_Core
     {
         $type = $this->request->get('type', 1);
         $filter = $this->request->get('filter', 'all');
-        $content = $this->request->get('content', '');
+        $ip = $this->request->get('ip', '');
+        $cid = $this->request->get('cid', '');
         $pagenum = $this->request->get('page', 1);
         $offset = (max(intval($pagenum), 1) - 1) * $this->config->pageSize;
         $query = $this->db->select()->from('table.access_log')
@@ -87,9 +88,13 @@ class Access_Core
         }
         switch ($filter) {
             case 'ip':
-                $ip = bindec(decbin(ip2long($content)));
+                $ip = bindec(decbin(ip2long($ip)));
                 $query->where('ip = ?', $ip);
                 $qcount->where('ip = ?', $ip);
+                break;
+            case 'post':
+                $query->where('content_id = ?', $cid);
+                $qcount->where('content_id = ?', $cid);
                 break;
         }
         $list = $this->db->fetchAll($query);
@@ -120,6 +125,13 @@ class Access_Core
             'type' => $type,
         ));
         $this->logs['page'] = $page->show();
+
+        $this->logs['cidList'] = $this->db->fetchAll($this->db->select('DISTINCT content_id as cid, COUNT(1) as count, table.contents.title')
+                ->from('table.access_log')
+                ->join('table.contents', 'table.access_log.content_id = table.contents.cid')
+                ->where('table.access_log.content_id <> ?', null)
+                ->group('table.access_log.content_id')
+                ->order('count', Typecho_Db::SORT_DESC));
     }
 
     /**
@@ -372,7 +384,8 @@ class Access_Core
      * @return void
      * @throws Typecho_Plugin_Exception
      */
-    public static function rewriteLogs() {
+    public static function rewriteLogs() 
+    {
         $db = Typecho_Db::get();
         $rows = $db->fetchAll($db->select()->from('table.access_log'));
         foreach ($rows as $row) {
@@ -398,7 +411,8 @@ class Access_Core
      * @access public
      * @return array
      */
-    public function parseArchive($archive) {
+    public function parseArchive($archive) 
+    {
         // 暂定首页的meta_id为0
         $content_id = null;
         $meta_id = null;

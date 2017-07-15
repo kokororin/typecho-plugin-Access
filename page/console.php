@@ -37,7 +37,7 @@ $access = new Access_Core();
                         </div>
 
                         <div class="search" role="search">
-                            <?php if ('' != $request->content && in_array($request->filter, array('', 'ip'))): ?>
+                            <?php if ($request->get('filter', 'all') != 'all'): ?>
                             <a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('&laquo; 取消筛选'); ?></a>
                             <?php endif; ?>
                             <input type="hidden" value="<?php echo $request->get('panel'); ?>" name="panel" />
@@ -45,10 +45,16 @@ $access = new Access_Core();
                             <input type="hidden" value="<?php echo $request->get('page'); ?>" name="page" />
                             <?php endif; ?>
                             <select name="filter">
-                                <option <?php if($request->filter == 'ip'): ?> selected="true"<?php endif; ?>value="all"><?php _e('所有'); ?></option>
+                                <option <?php if($request->filter == 'all'): ?> selected="true"<?php endif; ?>value="all"><?php _e('所有'); ?></option>
                                 <option <?php if($request->filter == 'ip'): ?> selected="true"<?php endif; ?>value="ip"><?php _e('按IP'); ?></option>
+                                <option <?php if($request->filter == 'post'): ?> selected="true"<?php endif; ?>value="post"><?php _e('按文章'); ?></option>
                             </select>
-                            <input type="text" class="text-s" placeholder="<?php _e('过滤器'); ?>" value="<?php echo htmlspecialchars($request->content); ?>" name="content" />
+                            <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?php echo htmlspecialchars($request->ip); ?>" name="ip" />
+                            <select style="<?php if($request->get('filter', 'all') != 'post'): ?>display: none<?php endif; ?>" name="cid">
+                                <?php foreach ($access->logs['cidList'] as $content):?>
+                                <option <?php if($request->cid == $content['cid']): ?> selected="true"<?php endif; ?>value="<?php echo $content['cid'];?>"><?php echo $content['title'];?> (<?php echo $content['count'];?>)</option>
+                                <?php endforeach;?>
+                            </select>
                             <select name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
@@ -60,7 +66,7 @@ $access = new Access_Core();
                     </form>
                 </div><!-- end .typecho-list-operate -->
 
-                <form method="post" name="manage_posts" class="operate-form">
+                <form method="post" class="operate-form">
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
                         <colgroup>
@@ -252,22 +258,12 @@ include 'table-js.php';
 <script type="text/javascript">
 $(document).ready(function() {
     $('a[data-action="ua"]').click(function() {
-        swal({
-            title: "User-Agent",
-            text: $.trim($(this).attr('title')),
-            type: "info",
-            confirmButtonText: "OK"
-        });
+        swal('User-Agent', $.trim($(this).attr('title')), 'info');
         return false;
     });
 
     $('a[data-action="ip"]').click(function() {
-        swal({
-            title: "IP查询中...",
-            text: '正在查询...',
-            type: "info",
-            confirmButtonText: "OK"
-        });
+        swal('IP查询中...', '正在查询...', 'info');
         $.ajax({
             url: '<?php echo rtrim(Helper::options()->index, '/').'/access/ip.json';?>',
             method: 'get',
@@ -275,28 +271,13 @@ $(document).ready(function() {
             data: {ip: $(this).data('ip')},
             success: function(data) {
                 if (data.code == 0) {
-                    swal({
-                        title: "IP查询成功",
-                        text: data.data,
-                        type: "success",
-                        confirmButtonText: "OK"
-                    });
+                    swal('IP查询成功', data.data, 'success');
                 } else {
-                    swal({
-                        title: "IP查询失败",
-                        text: data.data,
-                        type: "warning",
-                        confirmButtonText: "OK"
-                    });
+                    swal('IP查询失败', data.data, 'warning');
                 }
             },
             error: function() {
-                swal({
-                    title: "IP查询失败",
-                    text: '网络异常或PHP环境配置异常',
-                    type: "warning",
-                    confirmButtonText: "OK"
-                });
+                swal('IP查询失败', '网络异常或PHP环境配置异常', 'warning');
             }
         });
         return false;
@@ -304,13 +285,13 @@ $(document).ready(function() {
 
     $('.dropdown-menu a[data-action="delete"]').click(function() {
         swal({
-          title: "你确定?",
-          text: "你确认要删除这些记录吗?",
-          type: "warning",
+          title: '你确定?',
+          text: '你确认要删除这些记录吗?',
+          type: 'warning',
           showCancelButton: true,
-          confirmButtonColor: "#DD6B55",
-          confirmButtonText: "是的",
-          cancelButtonText: "算啦",
+          confirmButtonColor: '#DD6B55',
+          confirmButtonText: '是的',
+          cancelButtonText: '算啦',
           closeOnConfirm: false
         }, function() {
                 var ids = [];
@@ -321,7 +302,7 @@ $(document).ready(function() {
                 });
 
                 if (ids.length == 0) {
-                    return swal("错误", "你并没有勾选任何内容", "warning");
+                    return swal('错误', '你并没有勾选任何内容', 'warning');
                 }
                 $.ajax({
                     url: '<?php echo rtrim(Helper::options()->index, '/').'/access/log/delete.json';?>',
@@ -331,17 +312,12 @@ $(document).ready(function() {
                     data: JSON.stringify(ids),
                     success: function(data) {
                         if (data.code == 0) {
-                            swal("删除成功", "所选记录已删除", "success");
+                            swal('删除成功', '所选记录已删除', 'success');
                             $.each(ids, function(index, elem) {
                                 $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
                             });
                         } else {
-                            swal({
-                                title: "错误",
-                                text: '发生错误了',
-                                type: "warning",
-                                confirmButtonText: "OK"
-                            });
+                            swal('错误', '发生错误了', 'warning');
                         }
                     }
                 });
@@ -350,29 +326,34 @@ $(document).ready(function() {
         $this.parents('.dropdown-menu').hide().prev().removeClass('active');
     });
 
-    $('form.search-form button[type="button"]').on('click', function() {
-        var $form = $('form.search-form');
-        var $contentInput = $form.find('input[name="content"]');
-        var $filterSelect = $form.find('select[name="filter"]');
+    var $form = $('form.search-form');
+    var $ipInput = $form.find('input[name="ip"]');
+    var $cidSelect = $form.find('select[name="cid"]');
+    var $filterSelect = $form.find('select[name="filter"]');
 
+    var hideInactive = function () {
+
+    };
+
+    $filterSelect.on('change', function() {
+        $ipInput.removeAttr('placeholder').val('').hide();
+        $cidSelect.hide();
+
+        switch ($filterSelect.val()) {
+            case 'ip':
+                $ipInput.attr('placeholder', '输入ip').show();
+                break;
+            case 'post':
+                $cidSelect.show();
+                break;
+        }
+    });
+
+    $form.find('button[type="button"]').on('click', function() {
         var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
-        if ($filterSelect.val() == 'ip' && !ipRegex.test($contentInput.val())) {
-            return swal({
-                title: "筛选条件错误",
-                text: 'IP地址不合法',
-                type: "warning",
-                confirmButtonText: "OK"
-            });
-        }
-
-        if ($filterSelect.val() == 'all' && $contentInput.val() != '') {
-            return swal({
-                title: "筛选条件错误",
-                text: '不选择筛选条件填什么啦！',
-                type: "warning",
-                confirmButtonText: "OK"
-            });
+        if ($filterSelect.val() == 'ip' && !ipRegex.test($ipInput.val())) {
+            return swal('筛选条件错误', 'IP地址不合法', 'warning');
         }
 
         $form.submit();
