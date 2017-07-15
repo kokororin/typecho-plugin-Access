@@ -1,4 +1,5 @@
 <?php
+require_once __DIR__ . '/Access_Bootstrap.php';
 /**
  * 获取访客信息，生成统计图表，由<a href="https://zhaiyiming.com/">@一名宅</a> 部分优化重构。
  *
@@ -131,7 +132,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
             }
             # 处理旧版本数据
             if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
-                require_once __DIR__ . '/Access_Bootstrap.php';
                 $rows = $db->fetchAll($db->select()->from('table.access'));
                 foreach ($rows as $row) {
                     $ua = new Access_UA($row['ua']);
@@ -176,7 +176,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
      */
     public static function backend($archive)
     {
-        require_once __DIR__ . '/Access_Bootstrap.php';
         $access = new Access_Core();
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
 

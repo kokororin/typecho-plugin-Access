@@ -10,7 +10,8 @@ class Access_Action implements Widget_Interface_Do
     {
         $this->response = Typecho_Response::getInstance();
         $this->request = Typecho_Request::getInstance();
-        require_once __DIR__ . '/Access_Bootstrap.php';
+        require_once __DIR__ . '/Access_Autoloader.php';
+        Access_Autoloader::register();
         $this->access = new Access_Core();
     }
 
