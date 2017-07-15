@@ -1,6 +1,6 @@
 ## Typecho Access 插件
 
-提供简易的访客记录查看。
+提供简易的访客记录查看。获取访客信息，生成统计图表。
 
 ### 功能简介/更新说明
 
@@ -13,11 +13,16 @@
 * 修复旧版本升级错误的提示，自动更新数据表结构
 * 使用ipip.net离线数据库
 * 日志写入支持前端写入或后端写入
+* 日志筛选支持按ip或文章标题
 
 ### 使用须知
 
 * 插件更新升级时，请先禁用插件后再上传
 * 插件目录名请修改为Access
+
+### 作者
+[@kokororin](https://github.com/kokororin)  
+[@一名宅](https://github.com/tinymins)
 
 ### 图示
 ![](https://kotori.love/usr/uploads/2015/12/4187563925.jpg)
