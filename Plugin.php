@@ -74,7 +74,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             'writeType', array(
                 '0' => '后端',
                 '1' => '前端',
-            ), '0', '日志写入类型:', '请选择日志写入类型，数据量大时（几万以上），后端写入可能会拖慢博客访问速度');
+            ), '0', '日志写入类型:', '请选择日志写入类型，如果写入速度较慢可选择前端写入日志。<br/>如果您使用了pjax，请在pjax相关事件中调用 window.Access.track() 方法。');
         $canAnalytize = new Typecho_Widget_Helper_Form_Element_Radio(
             'canAnalytize', array(
                 '0' => '不允许',
@@ -197,8 +197,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             $index = rtrim(Helper::options()->index, '/');
             $access = new Access_Core();
             $parsedArchive = $access->parseArchive($archive);
-            // TODO 兼容pjax
-            echo "<script type=\"text/javascript\">(function(){var t=function(){var i=new Image();i.src='{$index}/access/log/track.gif?u='+location.pathname+location.search+location.hash+'&cid={$parsedArchive['content_id']}&mid={$parsedArchive['meta_id']}';};t();})();</script>";
+            echo "<script type=\"text/javascript\">(function(w){var t=function(){var i=new Image();i.src='{$index}/access/log/track.gif?u='+location.pathname+location.search+location.hash+'&cid={$parsedArchive['content_id']}&mid={$parsedArchive['meta_id']}&rand='+new Date().getTime()};t();var a={};a.track=t;w.Access=a})(this);</script>";
         }
     }
 
