@@ -66,8 +66,6 @@ class Access_Core
     {
         $type = $this->request->get('type', 1);
         $filter = $this->request->get('filter', 'all');
-        $ip = $this->request->get('ip', '');
-        $cid = $this->request->get('cid', '');
         $pagenum = $this->request->get('page', 1);
         $offset = (max(intval($pagenum), 1) - 1) * $this->config->pageSize;
         $query = $this->db->select()->from('table.access_log')
@@ -88,13 +86,20 @@ class Access_Core
         }
         switch ($filter) {
             case 'ip':
+                $ip = $this->request->get('ip', '');
                 $ip = bindec(decbin(ip2long($ip)));
                 $query->where('ip = ?', $ip);
                 $qcount->where('ip = ?', $ip);
                 break;
             case 'post':
+                $cid = $this->request->get('cid', '');
                 $query->where('content_id = ?', $cid);
                 $qcount->where('content_id = ?', $cid);
+                break;
+            case 'path':
+                $path = $this->request->get('path', '');
+                $query->where('path = ?', $path);
+                $qcount->where('path = ?', $path);
                 break;
         }
         $list = $this->db->fetchAll($query);

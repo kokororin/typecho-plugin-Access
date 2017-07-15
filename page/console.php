@@ -48,6 +48,7 @@ $access = new Access_Core();
                                 <option <?php if($request->filter == 'all'): ?> selected="true"<?php endif; ?>value="all"><?php _e('所有'); ?></option>
                                 <option <?php if($request->filter == 'ip'): ?> selected="true"<?php endif; ?>value="ip"><?php _e('按IP'); ?></option>
                                 <option <?php if($request->filter == 'post'): ?> selected="true"<?php endif; ?>value="post"><?php _e('按文章'); ?></option>
+                                <option <?php if($request->filter == 'path'): ?> selected="true"<?php endif; ?>value="path"><?php _e('按路由'); ?></option>
                             </select>
                             <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?php echo htmlspecialchars($request->ip); ?>" name="ip" />
                             <select style="<?php if($request->get('filter', 'all') != 'post'): ?>display: none<?php endif; ?>" name="cid">
@@ -55,6 +56,7 @@ $access = new Access_Core();
                                 <option <?php if($request->cid == $content['cid']): ?> selected="true"<?php endif; ?>value="<?php echo $content['cid'];?>"><?php echo $content['title'];?> (<?php echo $content['count'];?>)</option>
                                 <?php endforeach;?>
                             </select>
+                            <input style="<?php if($request->get('filter', 'all') != 'path'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?php echo htmlspecialchars($request->path); ?>" name="path" />
                             <select name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
@@ -92,7 +94,7 @@ $access = new Access_Core();
                             <?php foreach ($access->logs['list'] as $log): ?>
                             <tr id="<?php echo $log['id']; ?>" data-id="<?php echo $log['id']; ?>">
                                 <td><input type="checkbox" data-id="<?php echo $log['id']; ?>" value="<?php echo $log['id']; ?>" name="id[]"/></td>
-                                <td><a target="_blank" href="<?php echo str_replace("%23", "#", $log['url']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
+                                <td><a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=path&path=' . $log['path']); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $log['display_name']; ?></a></td>
                                 <td><a data-action="ip" data-ip="<?php echo long2ip($log['ip']); ?>" href="#"><?php echo long2ip($log['ip']); ?></a><?php if($request->filter != 'ip'): ?> <a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=ip&ip=' . long2ip($log['ip'])); ?>">[ ? ]</a><?php endif; ?></td>
                                 <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
@@ -329,6 +331,7 @@ $(document).ready(function() {
     var $form = $('form.search-form');
     var $ipInput = $form.find('input[name="ip"]');
     var $cidSelect = $form.find('select[name="cid"]');
+    var $pathInput = $form.find('input[name="path"]');
     var $filterSelect = $form.find('select[name="filter"]');
 
     var hideInactive = function () {
@@ -345,6 +348,9 @@ $(document).ready(function() {
                 break;
             case 'post':
                 $cidSelect.show();
+                break;
+            case 'path':
+                $pathInput.attr('placeholder', '输入路由').show();
                 break;
         }
     });
