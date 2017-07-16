@@ -334,10 +334,6 @@ $(document).ready(function() {
     var $pathInput = $form.find('input[name="path"]');
     var $filterSelect = $form.find('select[name="filter"]');
 
-    var hideInactive = function () {
-
-    };
-
     $filterSelect.on('change', function() {
         $ipInput.removeAttr('placeholder').val('').hide();
         $cidSelect.hide();
