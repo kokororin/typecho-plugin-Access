@@ -424,12 +424,12 @@ $(document).ready(function() {
   (function() {
     var u="//analytics.kotori.love/";
     _paq.push(['setTrackerUrl', u+'piwik.php']);
-    _paq.push(['setSiteId', '3']);
+    _paq.push(['setSiteId', '3lMvrB']);
     var d=document, g=d.createElement('script'), s=d.getElementsByTagName('script')[0];
     g.type='text/javascript'; g.async=true; g.defer=true; g.src=u+'piwik.js'; s.parentNode.insertBefore(g,s);
   })();
 </script>
-<noscript><p><img src="//analytics.kotori.love/piwik.php?idsite=3" style="border:0;" alt="" /></p></noscript>
+<noscript><p><img src="//analytics.kotori.love/piwik.php?idsite=3lMvrB" style="border:0;" alt="" /></p></noscript>
 <?php endif;?>
 <?php
 include 'footer.php';
