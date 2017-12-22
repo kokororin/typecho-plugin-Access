@@ -24,18 +24,18 @@ $access = new Access_Core();
 
             <div class="col-mb-12 typecho-list">
                 <div class="typecho-list-operate clearfix">
-                    <form method="get" class="search-form">
 
-                        <div class="operate">
-                            <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
-                            <div class="btn-group btn-drop">
-                                <button class="btn dropdown-toggle btn-s" type="button"><i class="sr-only"><?php _e('操作'); ?></i><?php _e('选中项'); ?> <i class="i-caret-down"></i></button>
-                                <ul class="dropdown-menu">
-                                    <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
-                                </ul>
-                            </div>
+                    <div class="operate">
+                        <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
+                        <div class="btn-group btn-drop">
+                            <button class="btn dropdown-toggle btn-s" type="button"><i class="sr-only"><?php _e('操作'); ?></i><?php _e('选中项'); ?> <i class="i-caret-down"></i></button>
+                            <ul class="dropdown-menu">
+                                <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
+                            </ul>
                         </div>
+                    </div>
 
+                    <form method="get" class="search-form">
                         <div class="search" role="search">
                             <?php if ($request->get('filter', 'all') != 'all'): ?>
                             <a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('&laquo; 取消筛选'); ?></a>
@@ -62,8 +62,8 @@ $access = new Access_Core();
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
                                 <option <?php if($request->type == 3): ?> selected="true"<?php endif; ?>value="3"><?php _e('所有'); ?></option>
                             </select>
-                             <input type="hidden" name="page" value="1">
-                             <button type="button" class="btn btn-s"><?php _e('筛选'); ?></button>
+                                <input type="hidden" name="page" value="1">
+                                <button type="button" class="btn btn-s"><?php _e('筛选'); ?></button>
                         </div>
                     </form>
                 </div><!-- end .typecho-list-operate -->
