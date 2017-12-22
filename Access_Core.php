@@ -172,9 +172,8 @@ class Access_Core
         }
         
         # 分类分时段统计数据
-        foreach (['today' => date("Y-m-d"), 'yesterday'=> date("Y-m-d", time() - 24 * 60 * 60)] as $day => $time) {
+        foreach (['today' => date("Y-m-d"), 'yesterday'=> date("Y-m-d", strtotime('-1 day'))] as $day => $time) {
             for ($i = 0; $i < 24; $i++) {
-                $time = date("Y-m-d");
                 $start = strtotime(date("{$time} {$i}:00:00"));
                 $end   = strtotime(date("{$time} {$i}:59:59"));
                 // "SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
