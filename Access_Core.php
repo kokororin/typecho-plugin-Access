@@ -184,8 +184,12 @@ class Access_Core
                 }
                 $this->overview['ip'][$day]['hours'][$i] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
                         ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-
                 // "SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
+                $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
+                    ->where("time >= ? AND time <= ?", $start, $end);
+                if (method_exists($subQuery, 'prepare')) {
+                    $subQuery = $subQuery->prepare($subQuery);
+                }
                 $this->overview['uv'][$day]['hours'][$i] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
                         ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
                 // "SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
