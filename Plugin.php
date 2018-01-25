@@ -5,13 +5,13 @@ require_once __DIR__ . '/Access_Bootstrap.php';
  *
  * @package Access
  * @author Kokororin
- * @version 2.0.1
+ * @version 2.0.2
  * @link https://kotori.love
  */
 class Access_Plugin implements Typecho_Plugin_Interface
 {
     public static $panel = 'Access/page/console.php';
-    
+
     /**
      * 激活插件方法,如果激活失败,直接抛出异常
      *
@@ -93,7 +93,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
      * @param Typecho_Widget_Helper_Form $form
      * @return void
      */
-    public static function personalConfig(Typecho_Widget_Helper_Form $form) { }
+    public static function personalConfig(Typecho_Widget_Helper_Form $form)
+    {}
 
     /**
      * 初始化以及升级插件数据库，如初始化失败,直接抛出异常
@@ -112,8 +113,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
         if (false === strpos($adapterName, 'Mysql')) {
             throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql', $adapterName));
         }
-        
-        $prefix  = $db->getPrefix();
+
+        $prefix = $db->getPrefix();
         $scripts = file_get_contents('usr/plugins/Access/sql/Mysql.sql');
         $scripts = str_replace('typecho_', $prefix, $scripts);
         $scripts = str_replace('%charset%', 'utf8', $scripts);
@@ -136,25 +137,27 @@ class Access_Plugin implements Typecho_Plugin_Interface
                 foreach ($rows as $row) {
                     $ua = new Access_UA($row['ua']);
                     $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
-                    $row['browser_id'       ] = $ua->getBrowserID();
-                    $row['browser_version'  ] = $ua->getBrowserVersion();
-                    $row['os_id'            ] = $ua->getOSID();
-                    $row['os_version'       ] = $ua->getOSVersion();
-                    $row['path'             ] = parse_url($row['url'], PHP_URL_PATH);
-                    $row['query_string'     ] = parse_url($row['url'], PHP_URL_QUERY);
-                    $row['ip'               ] = bindec(decbin(ip2long($row['ip'])));
-                    $row['entrypoint'       ] = $row['referer'];
+                    $row['browser_id'] = $ua->getBrowserID();
+                    $row['browser_version'] = $ua->getBrowserVersion();
+                    $row['os_id'] = $ua->getOSID();
+                    $row['os_version'] = $ua->getOSVersion();
+                    $row['path'] = parse_url($row['url'], PHP_URL_PATH);
+                    $row['query_string'] = parse_url($row['url'], PHP_URL_QUERY);
+                    $row['ip'] = bindec(decbin(ip2long($row['ip'])));
+                    $row['entrypoint'] = $row['referer'];
                     $row['entrypoint_domain'] = $row['referer_domain'];
-                    $row['time'             ] = $row['date'];
-                    $row['robot'            ] = $ua->isRobot() ? 1 : 0;
-                    $row['robot_id'         ] = $ua->getRobotID();
-                    $row['robot_version'    ] = $ua->getRobotVersion();
+                    $row['time'] = $row['date'];
+                    $row['robot'] = $ua->isRobot() ? 1 : 0;
+                    $row['robot_id'] = $ua->getRobotID();
+                    $row['robot_version'] = $ua->getRobotVersion();
                     unset($row['date']);
                     try {
                         $db->query($db->insert('table.access_log')->rows($row));
                     } catch (Typecho_Db_Exception $e) {
-                        if ($e->getCode() != 23000)
+                        if ($e->getCode() != 23000) {
                             throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+                        }
+
                     }
                 }
                 $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
@@ -210,7 +213,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
 $(document).ready(function() {
   $("#start-link").append("<li><a href=\"';
             Helper::options()->adminUrl('extending.php?panel=' . self::$panel);
-            echo '\">'. _t('Access控制台') . '</a></li>");
+            echo '\">' . _t('Access控制台') . '</a></li>");
 });
 </script>';
         }

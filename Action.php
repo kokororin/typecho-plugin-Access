@@ -16,12 +16,10 @@ class Access_Action implements Widget_Interface_Do
     }
 
     public function execute()
-    {
-    }
+    {}
 
     public function action()
-    {
-    }
+    {}
 
     public function writeLogs()
     {
@@ -71,7 +69,6 @@ class Access_Action implements Widget_Interface_Do
 
     public function deleteLogs()
     {
-        $this->response->setContentType('application/json');
         try {
             $this->checkAuth();
             $data = @file_get_contents('php://input');
@@ -91,7 +88,7 @@ class Access_Action implements Widget_Interface_Do
             );
         }
 
-        exit(Json::encode($response));
+        $this->response->throwJson($response);
     }
 
     protected function checkAuth()
