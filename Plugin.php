@@ -110,64 +110,88 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
         $db = Typecho_Db::get();
         $adapterName = $db->getAdapterName();
-        if (false === strpos($adapterName, 'Mysql')) {
-            throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql', $adapterName));
-        }
-
-        $prefix = $db->getPrefix();
-        $scripts = file_get_contents('usr/plugins/Access/sql/Mysql.sql');
-        $scripts = str_replace('typecho_', $prefix, $scripts);
-        $scripts = str_replace('%charset%', 'utf8', $scripts);
-        $scripts = explode(';', $scripts);
-        try {
-            $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
-            # 初始化数据库如果不存在
-            if (!$db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
-                foreach ($scripts as $script) {
-                    $script = trim($script);
-                    if ($script) {
-                        $db->query($script, Typecho_Db::WRITE);
-                    }
-                }
-                $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
-            }
-            # 处理旧版本数据
-            if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
-                $rows = $db->fetchAll($db->select()->from('table.access'));
-                foreach ($rows as $row) {
-                    $ua = new Access_UA($row['ua']);
-                    $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
-                    $row['browser_id'] = $ua->getBrowserID();
-                    $row['browser_version'] = $ua->getBrowserVersion();
-                    $row['os_id'] = $ua->getOSID();
-                    $row['os_version'] = $ua->getOSVersion();
-                    $row['path'] = parse_url($row['url'], PHP_URL_PATH);
-                    $row['query_string'] = parse_url($row['url'], PHP_URL_QUERY);
-                    $row['ip'] = bindec(decbin(ip2long($row['ip'])));
-                    $row['entrypoint'] = $row['referer'];
-                    $row['entrypoint_domain'] = $row['referer_domain'];
-                    $row['time'] = $row['date'];
-                    $row['robot'] = $ua->isRobot() ? 1 : 0;
-                    $row['robot_id'] = $ua->getRobotID();
-                    $row['robot_version'] = $ua->getRobotVersion();
-                    unset($row['date']);
-                    try {
-                        $db->query($db->insert('table.access_log')->rows($row));
-                    } catch (Typecho_Db_Exception $e) {
-                        if ($e->getCode() != 23000) {
-                            throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+        
+        if (strpos($adapterName, 'Mysql') !== false) {
+            $prefix  = $db->getPrefix();
+            $scripts = file_get_contents('usr/plugins/Access/sql/Mysql.sql');
+            $scripts = str_replace('typecho_', $prefix, $scripts);
+            $scripts = str_replace('%charset%', 'utf8', $scripts);
+            $scripts = explode(';', $scripts);
+            try {
+                $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
+                # 初始化数据库如果不存在
+                if (!$db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+                    foreach ($scripts as $script) {
+                        $script = trim($script);
+                        if ($script) {
+                            $db->query($script, Typecho_Db::WRITE);
                         }
-
                     }
+                    $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
                 }
-                $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
-                $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
+                # 处理旧版本数据
+                if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+                    $rows = $db->fetchAll($db->select()->from('table.access'));
+                    foreach ($rows as $row) {
+                        $ua = new Access_UA($row['ua']);
+                        $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
+                        $row['browser_id'       ] = $ua->getBrowserID();
+                        $row['browser_version'  ] = $ua->getBrowserVersion();
+                        $row['os_id'            ] = $ua->getOSID();
+                        $row['os_version'       ] = $ua->getOSVersion();
+                        $row['path'             ] = parse_url($row['url'], PHP_URL_PATH);
+                        $row['query_string'     ] = parse_url($row['url'], PHP_URL_QUERY);
+                        $row['ip'               ] = bindec(decbin(ip2long($row['ip'])));
+                        $row['entrypoint'       ] = $row['referer'];
+                        $row['entrypoint_domain'] = $row['referer_domain'];
+                        $row['time'             ] = $row['date'];
+                        $row['robot'            ] = $ua->isRobot() ? 1 : 0;
+                        $row['robot_id'         ] = $ua->getRobotID();
+                        $row['robot_version'    ] = $ua->getRobotVersion();
+                        unset($row['date']);
+                        try {
+                            $db->query($db->insert('table.access_log')->rows($row));
+                        } catch (Typecho_Db_Exception $e) {
+                            if ($e->getCode() != 23000)
+                                throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+                        }
+                    }
+                    $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
+                    $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
+                }
+                return $msg;
+            } catch (Typecho_Db_Exception $e) {
+                throw new Typecho_Plugin_Exception(_t('数据表建立失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+            } catch (Exception $e) {
+                throw new Typecho_Plugin_Exception($e->getMessage());
             }
-            return $msg;
-        } catch (Typecho_Db_Exception $e) {
-            throw new Typecho_Plugin_Exception(_t('数据表建立失败，插件启用失败，错误信息：%s。', $e->getMessage()));
-        } catch (Exception $e) {
-            throw new Typecho_Plugin_Exception($e->getMessage());
+        } else if (strpos($adapterName, 'SQLite') !== false) {
+            $prefix  = $db->getPrefix();
+            $scripts = file_get_contents('usr/plugins/Access/sql/SQLite.sql');
+            $scripts = str_replace('typecho_', $prefix, $scripts);
+            $scripts = explode(';', $scripts);
+            try {
+                $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
+                # 初始化数据库如果不存在
+                if (!$db->fetchRow($db->query("SELECT name FROM sqlite_master WHERE TYPE='table' AND name='{$prefix}access_log';", Typecho_Db::READ))) {
+                    foreach ($scripts as $script) {
+                        $script = trim($script);
+                        if ($script) {
+                            $db->query($script, Typecho_Db::WRITE);
+                        }
+                    }
+                    $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
+                } else {
+                    $msg = _t('数据表已经存在，插件启用成功，') . $configLink;
+                }
+                return $msg;
+            } catch (Typecho_Db_Exception $e) {
+                throw new Typecho_Plugin_Exception(_t('数据表建立失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+            } catch (Exception $e) {
+                throw new Typecho_Plugin_Exception($e->getMessage());
+            }
+        } else {
+            throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql和SQLite', $adapterName));
         }
     }
 
