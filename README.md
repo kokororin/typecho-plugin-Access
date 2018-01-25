@@ -20,9 +20,10 @@
 * 插件更新升级时，请先禁用插件后再上传
 * 插件目录名请修改为Access
 
-### 作者
+### 作者/贡献者
 [@kokororin](https://github.com/kokororin)  
-[@一名宅](https://github.com/tinymins)
+[@一名宅](https://github.com/tinymins)  
+[@Zhizheng Zhang](https://github.com/izhizheng)
 
 ### 图示
 ![](https://kotori.love/usr/uploads/2015/12/4187563925.jpg)
