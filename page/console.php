@@ -337,6 +337,7 @@ $(document).ready(function() {
     $filterSelect.on('change', function() {
         $ipInput.removeAttr('placeholder').val('').hide();
         $cidSelect.hide();
+        $pathInput.removeAttr('placeholder').val('').hide();
 
         switch ($filterSelect.val()) {
             case 'ip':
