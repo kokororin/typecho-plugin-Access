@@ -231,11 +231,9 @@ class Access_Core
                 ->from('table.access_log'))[0]['count'];
 
         # 分类型绘制24小时访问图
-        $this->overview['chart']['xAxis']['categories'] = json_encode(array(
-            0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23,
-        ));
+        $this->overview['chart']['xAxis']['categories'] = Json::encode(range(0, 23));
         foreach (array('ip', 'uv', 'pv') as $type) {
-            $this->overview['chart']['series'][$type] = json_encode($this->overview[$type]['today']['hours']);
+            $this->overview['chart']['series'][$type] = Json::encode($this->overview[$type]['today']['hours']);
         }
         $this->overview['chart']['title']['text'] = _t('%s 统计', date("Y-m-d"));
     }

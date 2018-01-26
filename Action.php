@@ -1,17 +1,14 @@
 <?php
 require_once __DIR__ . '/Access_Bootstrap.php';
 
-class Access_Action implements Widget_Interface_Do
+class Access_Action extends Typecho_Widget implements Widget_Interface_Do
 {
-
-    private $response;
-    private $request;
     private $access;
 
-    public function __construct()
+    public function __construct($request, $response, $params = null)
     {
-        $this->response = Typecho_Response::getInstance();
-        $this->request = Typecho_Request::getInstance();
+        parent::__construct($request, $response, $params);
+
         $this->access = new Access_Core();
     }
 
@@ -33,7 +30,6 @@ class Access_Action implements Widget_Interface_Do
 
     public function ip()
     {
-        $this->response->setContentType('application/json');
         $ip = $this->request->get('ip');
         try {
             $this->checkAuth();
@@ -64,7 +60,7 @@ class Access_Action implements Widget_Interface_Do
                 );
             }
         }
-        exit(Json::encode($response));
+        $this->response->throwJson($response);
     }
 
     public function deleteLogs()
