@@ -123,12 +123,20 @@ class Access_Core
         $this->logs['list'] = $this->htmlEncode($this->urlDecode($list));
 
         $this->logs['rows'] = $this->db->fetchAll($qcount)[0]['count'];
+        
+        $filter = $this->request->get('filter', 'all');
+        $filterOptions = $this->request->get($filter);
 
-        $page = new Access_Page($this->config->pageSize, $this->logs['rows'], $pagenum, 10, array(
+        $filterArr = array(
+            'filter' => $filter,
+            $filter => $filterOptions
+        );
+
+        $page = new Access_Page($this->config->pageSize, $this->logs['rows'], $pagenum, 10, array_merge($filterArr, array(
             'panel' => Access_Plugin::$panel,
             'action' => 'logs',
             'type' => $type,
-        ));
+        )));
         $this->logs['page'] = $page->show();
 
         $this->logs['cidList'] = $this->db->fetchAll($this->db->select('DISTINCT content_id as cid, COUNT(1) as count, table.contents.title')
