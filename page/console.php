@@ -127,7 +127,7 @@ $access = new Access_Core();
 
                         <?php if($access->logs['rows'] > 1): ?>
                         <ul class="typecho-pager">
-                            <?php echo $access->logs['page']; ?>
+                            <?php echo $access->logs['page'];?>
                         </ul>
                         <?php endif; ?>
                     </form>
@@ -314,9 +314,15 @@ $(document).ready(function() {
                     data: JSON.stringify(ids),
                     success: function(data) {
                         if (data.code == 0) {
-                            swal('删除成功', '所选记录已删除', 'success');
                             $.each(ids, function(index, elem) {
                                 $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
+                            });
+                            swal({title:'删除成功', 
+                                  text:'所选记录已删除', 
+                                  type:'success'}, function() {
+                              if($('.typecho-list-table tbody tr').length == 0) {
+                                window.location.reload();
+                              }
                             });
                         } else {
                             swal('错误', '发生错误了', 'warning');
