@@ -128,6 +128,10 @@ class Access_Core
             'panel' => Access_Plugin::$panel,
             'action' => 'logs',
             'type' => $type,
+            'filter' => $filter,
+            'ip' => long2ip($ip),
+            'cid' => $cid,
+            'path' => $path,
         ));
         $this->logs['page'] = $page->show();
 
