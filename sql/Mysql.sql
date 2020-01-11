@@ -1,6 +1,6 @@
 CREATE TABLE `typecho_access_log` (
   `id`                int(10) unsigned NOT NULL auto_increment,
-  `ua`                varchar(255)     default ''  ,
+  `ua`                varchar(512)     default ''  ,
   `browser_id`        varchar(32)      default ''  ,
   `browser_version`   varchar(32)      default ''  ,
   `os_id`             varchar(32)      default ''  ,
