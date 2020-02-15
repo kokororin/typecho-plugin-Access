@@ -26,12 +26,12 @@
 [@Zhizheng Zhang](https://github.com/izhizheng)
 
 ### 图示
-![](https://kotori.love/usr/uploads/2015/12/4187563925.jpg)
+![](https://static-files.kotori.love/blog/2015/12/4187563925.jpg)
 
-![A75B8F39-C8B6-4CD2-AFFC-784B3E27B8A4.png](https://kotori.love/usr/uploads/2015/12/2019049143.png)
+![A75B8F39-C8B6-4CD2-AFFC-784B3E27B8A4.png](https://static-files.kotori.love/blog/2015/12/2019049143.png)
 
-![](https://kotori.love/usr/uploads/2016/08/1564663056.png)
+![](https://static-files.kotori.love/blog/2016/08/1564663056.png)
 
-![](https://kotori.love/usr/uploads/2016/08/1121750290.png)
+![](https://static-files.kotori.love/blog/2016/08/1121750290.png)
 
-![BDEF004E-157E-4ADF-99C0-5EE65BDA61A6.png](https://kotori.love/usr/uploads/2016/11/3973345673.png)
+![BDEF004E-157E-4ADF-99C0-5EE65BDA61A6.png](https://static-files.kotori.love/blog/2016/11/3973345673.png)
