@@ -50,10 +50,10 @@ class Access_Ip
         $max_comp_len = self::$offset['len'] - 262144 - 4;
         for ($start = $start['len'] * 9 + 262144; $start < $max_comp_len; $start += 9)
         {
-            if (self::$index{$start} . self::$index{$start + 1} . self::$index{$start + 2} . self::$index{$start + 3} >= $nip2)
+            if (self::$index[$start] . self::$index[$start + 1] . self::$index[$start + 2] . self::$index[$start + 3] >= $nip2)
             {
-                $index_offset = unpack('Vlen', self::$index{$start + 4} . self::$index{$start + 5} . self::$index{$start + 6} . "\x0");
-                $index_length = unpack('nlen', self::$index{$start + 7} . self::$index{$start + 8});
+                $index_offset = unpack('Vlen', self::$index[$start + 4] . self::$index[$start + 5] . self::$index[$start + 6] . "\x0");
+                $index_length = unpack('nlen', self::$index[$start + 7] . self::$index[$start + 8]);
 
                 break;
             }
