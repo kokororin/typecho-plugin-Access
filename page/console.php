@@ -72,7 +72,7 @@ $access = new Access_Core();
                 <div class="typecho-table-wrap">
                     <table class="typecho-list-table">
                         <colgroup>
-                            <col width="5"/>
+                            <col width="5%"/>
                             <col width="20%"/>
                             <col width="25%"/>
                             <col width="18%"/>
