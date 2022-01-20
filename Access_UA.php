@@ -54,6 +54,11 @@ class Access_UA {
 		'Fish search',
 		'crawler',
 		'bingbot',
+		'DNSPod-Monitor', // DNSPod D监控
+		'Reeder', // RSS 阅读器
+		'Tiny Tiny RSS', // RSS 阅读器
+		'inoreader', // RSS 阅读器
+		'python-requests',
 	);
 
 	private $ua;
@@ -262,7 +267,7 @@ class Access_UA {
 			} elseif (preg_match('#Maxthon( |\/)([a-zA-Z0-9.]+)#i', $this->ua, $matches)) {
 				$this->browserID = $this->browserName = 'Maxthon';
 				$this->browserVersion = $matches[2];
-			} elseif (preg_match('#Edge/([a-zA-Z0-9.]+)#i', $this->ua, $matches)) {
+			} elseif (preg_match('#Edg/([a-zA-Z0-9.]+)#i', $this->ua, $matches)) {
 				$this->browserID = $this->browserName = 'Edge';
 				$this->browserVersion = $matches[1];
 			} elseif (preg_match('#Chrome/([a-zA-Z0-9.]+)#i', $this->ua, $matches)) {
