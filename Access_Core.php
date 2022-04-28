@@ -342,10 +342,10 @@ class Access_Core
     {
         $entrypoint = $this->request->getReferer();
         if ($entrypoint == null) {
-            $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint');
+            $entrypoint = Typecho_Cookie::get('__typecho_access_entrypoint')?:'';
         }
         if (parse_url($entrypoint, PHP_URL_HOST) == parse_url(Helper::options()->siteUrl, PHP_URL_HOST)) {
-            $entrypoint = null;
+            $entrypoint = '';
         }
         if ($entrypoint != null) {
             Typecho_Cookie::set('__typecho_access_entrypoint', $entrypoint);
@@ -375,6 +375,9 @@ class Access_Core
 
         $entrypoint = $this->getEntryPoint();
         $referer = $this->request->getReferer();
+        if (empty($referer)){
+            $referer = '';
+        }
         $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
 
         if ($archive != null) {
