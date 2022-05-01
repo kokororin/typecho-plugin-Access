@@ -6,7 +6,7 @@ require_once __DIR__ . '/Access_Bootstrap.php';
  * @package Access
  * @author Kokororin
  * @version 2.0.2
- * @link https://kotori.love
+ * @link https://github.com/kokororin/typecho-plugin-Access
  */
 class Access_Plugin implements Typecho_Plugin_Interface
 {
@@ -75,15 +75,9 @@ class Access_Plugin implements Typecho_Plugin_Interface
                 '0' => '后端',
                 '1' => '前端',
             ), '0', '日志写入类型:', '请选择日志写入类型，如果写入速度较慢可选择前端写入日志。<br/>如果您使用了pjax，请在pjax相关事件中调用 window.Access.track() 方法。');
-        $canAnalytize = new Typecho_Widget_Helper_Form_Element_Radio(
-            'canAnalytize', array(
-                '0' => '不允许',
-                '1' => '允许',
-            ), '1', '允许统计使用情况:', '请选择是否允许插件作者统计使用情况');
         $form->addInput($pageSize);
         $form->addInput($isDrop);
         $form->addInput($writeType);
-        $form->addInput($canAnalytize);
     }
 
     /**
