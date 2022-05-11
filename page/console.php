@@ -161,21 +161,21 @@ $access = new Access_Core();
                         <tbody>
                             <tr>
                                 <td>今日</td>
-                                <td><?php echo $access->overview['pv']['today']['total'];?></td>
-                                <td><?php echo $access->overview['uv']['today']['total'];?></td>
-                                <td><?php echo $access->overview['ip']['today']['total'];?></td>
+                                <td><?php echo $access->overview['today']['pv']['count'];?></td>
+                                <td><?php echo $access->overview['today']['uv']['count'];?></td>
+                                <td><?php echo $access->overview['today']['ip']['count'];?></td>
                             </tr>
                             <tr>
                                 <td>昨日</td>
-                                <td><?php echo $access->overview['pv']['yesterday']['total'];?></td>
-                                <td><?php echo $access->overview['uv']['yesterday']['total'];?></td>
-                                <td><?php echo $access->overview['ip']['yesterday']['total'];?></td>
+                                <td><?php echo $access->overview['yesterday']['pv']['count'];?></td>
+                                <td><?php echo $access->overview['yesterday']['uv']['count'];?></td>
+                                <td><?php echo $access->overview['yesterday']['ip']['count'];?></td>
                             </tr>
                             <tr>
                                 <td>总计</td>
-                                <td><?php echo $access->overview['pv']['all']['total'];?></td>
-                                <td><?php echo $access->overview['uv']['all']['total'];?></td>
-                                <td><?php echo $access->overview['ip']['all']['total'];?></td>
+                                <td><?php echo $access->overview['total']['pv'];?></td>
+                                <td><?php echo $access->overview['total']['uv'];?></td>
+                                <td><?php echo $access->overview['total']['ip'];?></td>
                             </tr>
                         </tbody>
                     </table>
@@ -237,12 +237,14 @@ $access = new Access_Core();
                     </table>
                 </div>
 
-                 <h4 class="typecho-list-table-title">今日图表</h4>
+                <h4 class="typecho-list-table-title">今日图表</h4>
+                <div class="typecho-table-wrap" id="chart-today"></div>
 
-                  <div class="typecho-table-wrap" id="chart">
-
-                </div>
-
+                <h4 class="typecho-list-table-title">昨日图表</h4>
+                <div class="typecho-table-wrap" id="chart-yesterday"></div>
+            
+                <h4 class="typecho-list-table-title">当月图表</h4>
+                <div class="typecho-table-wrap" id="chart-month"></div>
             </div><!-- end .typecho-list -->
 
 
@@ -368,51 +370,26 @@ $(document).ready(function() {
 <script src="<?php $options->pluginUrl('Access/lib/highcharts/js/highcharts.js')?>"></script>
 <script src="<?php $options->pluginUrl('Access/lib/highcharts/js/modules/exporting.js')?>"></script>
 <script type="text/javascript">
-$(document).ready(function() {
-    $('#chart').highcharts({
-        title: {
-            text: '<?php echo $access->overview['chart']['title']['text'];?>',
-            x: -20 //center
-        },
-        subtitle: {
-            text: 'Source: Typecho Access',
-            x: -20
-        },
-        xAxis: {
-            categories: <?php echo $access->overview['chart']['xAxis']['categories'];?>
-        },
-        yAxis: {
-            title: {
-                text: '数量'
-            },
-            plotLines: [{
-                value: 0,
-                width: 1,
-                color: '#808080'
-            }]
-        },
-        tooltip: {
-            valueSuffix: ''
-        },
-        plotOptions: {
-            line: {
-                dataLabels: {
-                    enabled: true
-                },
-                enableMouseTracking: false
-            }
-        },
-        series: [{
-            name: 'PV',
-            data: <?php echo $access->overview['chart']['series']['pv'];?>
-        }, {
-            name: 'UV',
-            data: <?php echo $access->overview['chart']['series']['uv'];?>
-        }, {
-            name: 'IP',
-            data: <?php echo $access->overview['chart']['series']['ip'];?>
-        }]
+chartData = <?php echo $access->overview['chart_data'] ?>;
+printChart = function(target, data) {
+    target.highcharts({
+        title: {text: data['title'], x: -20},
+        subtitle: {text: data['sub_title'], x: -20},
+        xAxis: {categories: data['xAxis']},
+        yAxis: {title: {text: '数量'},plotLines: [{value: 0,width: 1,color: '#808080'}]},
+        tooltip: {valueSuffix: ''},
+        plotOptions: {line: {dataLabels: {enabled: true},enableMouseTracking: false}},
+        series: [
+            {name: 'PV（浏览）',data: data['pv']['detail']}, 
+            {name: 'UV（访客）',data: data['uv']['detail']},
+            {name: 'IP（地址）',data: data['ip']['detail']}
+        ]
     });
+}
+$(document).ready(function() {
+    printChart($('#chart-today'), chartData['today']);
+    printChart($('#chart-yesterday'), chartData['yesterday']);
+    printChart($('#chart-month'), chartData['month']);
 });
 
 </script>
