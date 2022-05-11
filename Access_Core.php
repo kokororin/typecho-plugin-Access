@@ -165,85 +165,136 @@ class Access_Core
     }
 
     /**
+     * 生成用于图表的JSON数据
+     *
+     * @access protected
+     * @return string
+     */
+    protected function makeChartJson(): string
+    {
+        $chart = [];
+        foreach($this->overview as $type => $val) {
+            $val['sub_title'] = 'Generate By AccessPlugin';
+            if($type == 'today' || $type == 'yesterday') {
+                $val['xAxis'] = range(0, count($val['ip']['detail']));
+                $val['title'] = _t('%s 统计', $val['time']);
+            } elseif($type == 'month') {
+                $val['xAxis'] = range(1, count($val['ip']['detail']));
+                $val['title'] = _t('%s 月统计', $val['time']);
+            }
+            $chart[$type] = $val;
+        }
+        return json_encode($chart, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
      * 生成总览数据，提供给页面渲染使用
      *
-     * @access public
+     * @access protected
      * @return void
      */
     protected function parseOverview()
     {
-        # 初始化统计数组
-        foreach (array('ip', 'uv', 'pv') as $type) {
-            foreach (array('today', 'yesterday') as $day) {
-                $this->overview[$type][$day]['total'] = 0;
-            }
-        }
-
+        $types = ['today', 'yesterday', 'month'];
         # 分类分时段统计数据
-        foreach (array('today' => date("Y-m-d"), 'yesterday' => date("Y-m-d", strtotime('-1 day'))) as $day => $time) {
-            for ($i = 0; $i < 24; $i++) {
-                $start = strtotime(date("{$time} {$i}:00:00"));
-                $end = strtotime(date("{$time} {$i}:59:59"));
-                // "SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')
-                    ->where("time >= ? AND time <= ?", $start, $end);
+        foreach($types as $type) {
+            if($type == 'today' || $type == 'yesterday') {
+                if($type == 'today')
+                    $time = date("Y-m-d");
+                else
+                    $time = date("Y-m-d", strtotime('-1 day'));
+                $this->overview[$type]['time'] = $time;
+
+                # 按小时统计数据
+                for($hour = 0; $hour < 24; $hour++) {
+                    $start = strtotime(date("{$time} {$hour}:00:00"));
+                    $end = strtotime(date("{$time} {$hour}:59:59"));
+                    // "SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
+                    $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')
+                        ->where("time >= ? AND time <= ?", $start, $end);
+                    if (method_exists($subQuery, 'prepare')) {
+                        $subQuery = $subQuery->prepare($subQuery);
+                    }
+                    $this->overview[$type]['ip']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
+                    // "SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
+                    $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
+                        ->where("time >= ? AND time <= ?", $start, $end);
+                    if (method_exists($subQuery, 'prepare')) {
+                        $subQuery = $subQuery->prepare($subQuery);
+                    }
+                    $this->overview[$type]['uv']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
+                    // "SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
+                    $this->overview[$type]['pv']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('table.access_log')->where('time >= ? AND time <= ?', $start, $end))[0]['count']);
+                }
+
+                # 统计当天总数据
+                $start = strtotime(date("{$time} 00:00:00"));
+                $end = strtotime(date("{$time} 23:59:59"));
+
+                $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
                 if (method_exists($subQuery, 'prepare')) {
                     $subQuery = $subQuery->prepare($subQuery);
                 }
-                $this->overview['ip'][$day]['hours'][$i] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                        ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                // "SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
-                    ->where("time >= ? AND time <= ?", $start, $end);
+                $this->overview[$type]['ip']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count']);
+
+                $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
                 if (method_exists($subQuery, 'prepare')) {
                     $subQuery = $subQuery->prepare($subQuery);
                 }
-                $this->overview['uv'][$day]['hours'][$i] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                        ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                // "SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                $this->overview['pv'][$day]['hours'][$i] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                        ->from('table.access_log')->where('time >= ? AND time <= ?', $start, $end))[0]['count']);
+                $this->overview[$type]['uv']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count']);
 
+                $this->overview[$type]['pv']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                        ->from('table.access_log')
+                        ->where("time >= ? AND time <= ?", $start, $end)
+                )[0]['count']);
+            } elseif($type == 'month') {
+		        $year = date('Y');
+                $month = date("m");
+                $monthDays = cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)); # 计算当月天数
+                $this->overview[$type]['time'] = $month;
+
+                # 按天统计数据
+		        for($day = 1; $day <= $monthDays; $day++) {
+                    $start = strtotime(date("{$year}-{$month}-{$day} 00:00:00"));
+		            $end = strtotime(date("{$year}-{$month}-{$day} 23:59:59"));
+
+                    $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')
+                        ->where('time >= ? AND time <= ?', $start, $end);
+                    if (method_exists($subQuery, 'prepare')) {
+                        $subQuery = $subQuery->prepare($subQuery);
+                    }
+                    $this->overview[$type]['ip']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
+                    $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
+                        ->where('time >= ? AND time <= ?', $start, $end);
+                    if (method_exists($subQuery, 'prepare')) {
+                        $subQuery = $subQuery->prepare($subQuery);
+                    }
+                    $this->overview[$type]['uv']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
+                    $this->overview[$type]['pv']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                            ->from('table.access_log')->where('time >= ? AND time <= ?', $start, $end))[0]['count']);
+
+		        }
             }
-
-            $start = strtotime(date("{$time} 00:00:00"));
-            $end = strtotime(date("{$time} 23:59:59"));
-
-            $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
-            if (method_exists($subQuery, 'prepare')) {
-                $subQuery = $subQuery->prepare($subQuery);
-            }
-            $this->overview['ip'][$day]['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count'];
-
-            $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
-            if (method_exists($subQuery, 'prepare')) {
-                $subQuery = $subQuery->prepare($subQuery);
-            }
-            $this->overview['uv'][$day]['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count'];
-
-            $this->overview['pv'][$day]['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                    ->from('table.access_log')
-                    ->where("time >= ? AND time <= ?", $start, $end)
-            )[0]['count'];
         }
 
-        # 总统计数据
+        # 统计总计数据
         // "SELECT DISTINCT ip FROM {$this->table} {$where}"));
-        $this->overview['ip']['all']['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('(' . $this->db->select('DISTINCT ip')->from('table.access_log') . ') AS tmp'))[0]['count'];
+        $this->overview['total']['ip'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                ->from('(' . $this->db->select('DISTINCT ip')->from('table.access_log') . ') AS tmp'))[0]['count']);
         // "SELECT DISTINCT ip,ua FROM {$this->table} {$where}"));
-        $this->overview['uv']['all']['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('(' . $this->db->select('DISTINCT ip,ua')->from('table.access_log') . ') AS tmp'))[0]['count'];
+        $this->overview['total']['uv'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                ->from('(' . $this->db->select('DISTINCT ip,ua')->from('table.access_log') . ') AS tmp'))[0]['count']);
         // "SELECT ip FROM {$this->table} {$where}"));
-        $this->overview['pv']['all']['total'] = $this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('table.access_log'))[0]['count'];
+        $this->overview['total']['pv'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
+                ->from('table.access_log'))[0]['count']);
 
-        # 分类型绘制24小时访问图
-        $this->overview['chart']['xAxis']['categories'] = Json::encode(range(0, 23));
-        foreach (array('ip', 'uv', 'pv') as $type) {
-            $this->overview['chart']['series'][$type] = Json::encode($this->overview[$type]['today']['hours']);
-        }
-        $this->overview['chart']['title']['text'] = _t('%s 统计', date("Y-m-d"));
+        # 输出用于图表的Json
+	    $this->overview['chart_data'] = $this->makeChartJson();
     }
 
     /**
