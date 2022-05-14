@@ -19,6 +19,7 @@
 
 * 插件更新升级时，请先禁用插件后再上传
 * 插件目录名请修改为Access
+* PHP需拥有Calendar扩展
 
 ### 作者/贡献者
 [@kokororin](https://github.com/kokororin)  
