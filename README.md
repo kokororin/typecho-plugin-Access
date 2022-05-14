@@ -20,11 +20,12 @@
 * 插件更新升级时，请先禁用插件后再上传
 * 插件目录名请修改为Access
 * PHP需拥有Calendar扩展
+* PHP>=7
 
 ### 作者/贡献者
-[@kokororin](https://github.com/kokororin)  
-[@一名宅](https://github.com/tinymins)  
-[@Zhizheng Zhang](https://github.com/izhizheng)
+<a href="https://github.com/kokororin/typecho-plugin-Access/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=kokororin/typecho-plugin-Access" />
+</a>
 
 ### 图示
 ![](https://static-files.kotori.love/blog/2015/12/4187563925.jpg)
