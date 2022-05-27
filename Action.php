@@ -28,41 +28,6 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
         echo $image;
     }
 
-    public function ip()
-    {
-        $ip = $this->request->get('ip');
-        try {
-            $this->checkAuth();
-            $response = Access_Ip::find($ip);
-            if (is_array($response)) {
-                $response = array(
-                    'code' => 0,
-                    'data' => implode(' ', $response),
-                );
-            } else {
-                throw new Exception('解析ip失败');
-            }
-        } catch (Exception $e) {
-            try {
-                $http = Typecho_Http_Client::get();
-                $result = $http->send('https://tools.keycdn.com/geo.json?host=' . $ip);
-                $result = Json::decode($result, true);
-                if ($result['status'] == 'success') {
-                    $response = array(
-                        'code' => 0,
-                        'data' => $result['data']['geo']['country_name'] . ' ' . $result['data']['geo']['city'],
-                    );
-                }
-            } catch (Exception $e) {
-                $response = array(
-                    'code' => 100,
-                    'data' => '很抱歉，ipip.net查询无结果，同时你的服务器无法连接fallback接口(tools.keycdn.com)',
-                );
-            }
-        }
-        $this->response->throwJson($response);
-    }
-
     public function deleteLogs()
     {
         try {
@@ -90,8 +55,30 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
     protected function checkAuth()
     {
         if (!$this->access->isAdmin()) {
-            throw new Exception('Access Denied');
+            throw new Exception('Access Denied', 401);
         }
     }
 
+    public function statistic() {
+        try {
+            $this->checkAuth(); # 鉴权
+            if(!$this->request->isGet())
+                throw new Exception('Method Not Allowed', 405);
+            
+            $rpcType = $this->request->get('rpc'); # 业务类型
+            $statistic = new Access_Statistic($this->request);
+            $data = $statistic->invoke($rpcType); # 进行业务分发并调取数据
+            $errCode = 0;
+            $errMsg = 'ok';
+        } catch (Exception $e) {
+            $errCode = $e->getCode();
+            $errMsg = $e->getMessage();
+        }
+
+        $this->response->throwJson([
+            'code' => $errCode,
+            'message' => $errMsg,
+            'data' => $data
+        ]);
+    }
 }

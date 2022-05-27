@@ -40,12 +40,12 @@ class Access_Core
             throw new Typecho_Plugin_Exception(_t('请先设置插件！'));
         }
         $this->ua = new Access_UA($this->request->getAgent());
+        $ipdbPath = dirname(__file__).'/lib/ipipfree.ipdb';
+        $this->ipdb = new Access_Ip($ipdbPath);
         switch ($this->request->get('action')) {
             case 'overview':
                 $this->action = 'overview';
                 $this->title = _t('访问概览');
-                $this->parseOverview();
-                $this->parseReferer();
                 break;
             case 'logs':
             default:
@@ -119,6 +119,11 @@ class Access_Core
             } else {
                 $row['display_name'] = $name . ' / ' . $version;
             }
+            if($row['ip_country'] == '中国') {
+                $row['ip_loc'] = "{$row['ip_province']} {$row['ip_city']}";
+            } else {
+                $row['ip_loc'] = $row['ip_country'];
+            }
         }
         $this->logs['list'] = $this->htmlEncode($this->urlDecode($list));
 
@@ -145,156 +150,6 @@ class Access_Core
                 ->where('table.access_log.content_id <> ?', null)
                 ->group('table.access_log.content_id')
                 ->order('count', Typecho_Db::SORT_DESC));
-    }
-
-    /**
-     * 生成来源统计数据，提供给页面渲染使用
-     *
-     * @access public
-     * @return void
-     */
-    protected function parseReferer()
-    {
-        $this->referer['url'] = $this->db->fetchAll($this->db->select('DISTINCT entrypoint AS value, COUNT(1) as count')
-                ->from('table.access_log')->where("entrypoint <> ''")->group('entrypoint')
-                ->order('count', Typecho_Db::SORT_DESC)->limit($this->config->pageSize));
-        $this->referer['domain'] = $this->db->fetchAll($this->db->select('DISTINCT entrypoint_domain AS value, COUNT(1) as count')
-                ->from('table.access_log')->where("entrypoint_domain <> ''")->group('entrypoint_domain')
-                ->order('count', Typecho_Db::SORT_DESC)->limit($this->config->pageSize));
-        $this->referer = $this->htmlEncode($this->urlDecode($this->referer));
-    }
-
-    /**
-     * 生成用于图表的JSON数据
-     *
-     * @access protected
-     * @return string
-     */
-    protected function makeChartJson(): string
-    {
-        $chart = [];
-        foreach($this->overview as $type => $val) {
-            $val['sub_title'] = 'Generate By AccessPlugin';
-            if($type == 'today' || $type == 'yesterday') {
-                $val['xAxis'] = range(0, count($val['ip']['detail']));
-                $val['title'] = _t('%s 统计', $val['time']);
-            } elseif($type == 'month') {
-                $val['xAxis'] = range(1, count($val['ip']['detail']));
-                $val['title'] = _t('%s 月统计', $val['time']);
-            }
-            $chart[$type] = $val;
-        }
-        return json_encode($chart, JSON_UNESCAPED_UNICODE);
-    }
-
-    /**
-     * 生成总览数据，提供给页面渲染使用
-     *
-     * @access protected
-     * @return void
-     */
-    protected function parseOverview()
-    {
-        $types = ['today', 'yesterday', 'month'];
-        # 分类分时段统计数据
-        foreach($types as $type) {
-            if($type == 'today' || $type == 'yesterday') {
-                if($type == 'today')
-                    $time = date("Y-m-d");
-                else
-                    $time = date("Y-m-d", strtotime('-1 day'));
-                $this->overview[$type]['time'] = $time;
-
-                # 按小时统计数据
-                for($hour = 0; $hour < 24; $hour++) {
-                    $start = strtotime(date("{$time} {$hour}:00:00"));
-                    $end = strtotime(date("{$time} {$hour}:59:59"));
-                    // "SELECT DISTINCT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                    $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')
-                        ->where("time >= ? AND time <= ?", $start, $end);
-                    if (method_exists($subQuery, 'prepare')) {
-                        $subQuery = $subQuery->prepare($subQuery);
-                    }
-                    $this->overview[$type]['ip']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                    // "SELECT DISTINCT ip,ua FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                    $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
-                        ->where("time >= ? AND time <= ?", $start, $end);
-                    if (method_exists($subQuery, 'prepare')) {
-                        $subQuery = $subQuery->prepare($subQuery);
-                    }
-                    $this->overview[$type]['uv']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                    // "SELECT ip FROM {$this->table} {$where} AND `time` BETWEEN {$start} AND {$end}"));
-                    $this->overview[$type]['pv']['detail'][$hour] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('table.access_log')->where('time >= ? AND time <= ?', $start, $end))[0]['count']);
-                }
-
-                # 统计当天总数据
-                $start = strtotime(date("{$time} 00:00:00"));
-                $end = strtotime(date("{$time} 23:59:59"));
-
-                $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
-                if (method_exists($subQuery, 'prepare')) {
-                    $subQuery = $subQuery->prepare($subQuery);
-                }
-                $this->overview[$type]['ip']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-
-                $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')->where("time >= ? AND time <= ?", $start, $end);
-                if (method_exists($subQuery, 'prepare')) {
-                    $subQuery = $subQuery->prepare($subQuery);
-                }
-                $this->overview[$type]['uv']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-
-                $this->overview[$type]['pv']['count'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                        ->from('table.access_log')
-                        ->where("time >= ? AND time <= ?", $start, $end)
-                )[0]['count']);
-            } elseif($type == 'month') {
-		        $year = date('Y');
-                $month = date("m");
-                $monthDays = cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)); # 计算当月天数
-                $this->overview[$type]['time'] = $month;
-
-                # 按天统计数据
-		        for($day = 1; $day <= $monthDays; $day++) {
-                    $start = strtotime(date("{$year}-{$month}-{$day} 00:00:00"));
-		            $end = strtotime(date("{$year}-{$month}-{$day} 23:59:59"));
-
-                    $subQuery = $this->db->select('DISTINCT ip')->from('table.access_log')
-                        ->where('time >= ? AND time <= ?', $start, $end);
-                    if (method_exists($subQuery, 'prepare')) {
-                        $subQuery = $subQuery->prepare($subQuery);
-                    }
-                    $this->overview[$type]['ip']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                    $subQuery = $this->db->select('DISTINCT ip,ua')->from('table.access_log')
-                        ->where('time >= ? AND time <= ?', $start, $end);
-                    if (method_exists($subQuery, 'prepare')) {
-                        $subQuery = $subQuery->prepare($subQuery);
-                    }
-                    $this->overview[$type]['uv']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('(' . $subQuery . ') AS tmp'))[0]['count']);
-                    $this->overview[$type]['pv']['detail'][$day-1] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                            ->from('table.access_log')->where('time >= ? AND time <= ?', $start, $end))[0]['count']);
-
-		        }
-            }
-        }
-
-        # 统计总计数据
-        // "SELECT DISTINCT ip FROM {$this->table} {$where}"));
-        $this->overview['total']['ip'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('(' . $this->db->select('DISTINCT ip')->from('table.access_log') . ') AS tmp'))[0]['count']);
-        // "SELECT DISTINCT ip,ua FROM {$this->table} {$where}"));
-        $this->overview['total']['uv'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('(' . $this->db->select('DISTINCT ip,ua')->from('table.access_log') . ') AS tmp'))[0]['count']);
-        // "SELECT ip FROM {$this->table} {$where}"));
-        $this->overview['total']['pv'] = intval($this->db->fetchAll($this->db->select('COUNT(1) AS count')
-                ->from('table.access_log'))[0]['count']);
-
-        # 输出用于图表的Json
-	    $this->overview['chart_data'] = $this->makeChartJson();
     }
 
     /**
@@ -419,10 +274,26 @@ class Access_Core
             $url = $this->request->getServer('REQUEST_URI');
         }
         $ip = $this->request->getIp();
-        if ($ip == null) {
-            $ip = '0.0.0.0';
+        if(!empty($ip)) {
+            # 解析ip归属地
+            try {
+                $city = $this->ipdb->findInfo($ip, 'CN');
+                $ip_country = $city->country_name;
+                if($ip_country == '中国') {
+                    $ip_province = $city->region_name;
+                    $ip_city = $city->city_name;
+                } else {
+                    $ip_province = $ip_city = NULL;
+                }
+            } catch(Excpetion $e) {
+                $ip_country = $ip_province = $ip_city = '未知';
+            }
+            
+            # ip转int
+            $ip = bindec(decbin(ip2long($ip)));
+        } else {
+            $ip = 0;
         }
-        $ip = bindec(decbin(ip2long($ip)));
 
         $entrypoint = $this->getEntryPoint();
         $referer = $this->request->getReferer();
@@ -450,6 +321,9 @@ class Access_Core
             'path' => parse_url($url, PHP_URL_PATH),
             'query_string' => parse_url($url, PHP_URL_QUERY),
             'ip' => $ip,
+            'ip_country' => $ip_country,
+            'ip_province' => $ip_province,
+            'ip_city' => $ip_city,
             'referer' => $referer,
             'referer_domain' => parse_url($referer, PHP_URL_HOST),
             'entrypoint' => $entrypoint,
