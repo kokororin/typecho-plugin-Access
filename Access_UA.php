@@ -77,8 +77,8 @@ class Access_UA {
 	private $browserVersion = null;
 
 	function __construct($ua) {
-		$this->ua ?: "" = $ua;
-		$this->ua ?: ""l = $this->filter($ua);
+		$this->ua = $ua;
+		$this->ual = $this->filter($ua);
 	}
 
 	public static function filter($str) {
@@ -96,7 +96,7 @@ class Access_UA {
 	 * @return string
 	 */
 	public function getUA() {
-		return $this->ua ?: "";
+		return $this->ua;
 	}
 
 	/**
@@ -107,13 +107,13 @@ class Access_UA {
 	 */
 	public function isRobot() {
 		if ($this->robotID === null) {
-			if (!empty($this->ua ?: "")) {
-				if (preg_match('#([a-zA-Z0-9]+\s*(?:bot|spider))[ /v]*([0-9.]*)#i', $this->ua ?: "", $matches)) {
+			if (!empty($this->ua)) {
+				if (preg_match('#([a-zA-Z0-9]+\s*(?:bot|spider))[ /v]*([0-9.]*)#i', $this->ua, $matches)) {
 					$this->robotID = $this->robotName = $matches[1];
 					$this->robotVersion = $matches[2];
 				}
 				foreach (self::$robots as $val) {
-					if (strpos($this->ua ?: ""l, $this->filter($val)) !== false) {
+					if (strpos($this->ual, $this->filter($val)) !== false) {
 						$this->robotID = $this->robotName = $val;
 					}
 				}
@@ -153,56 +153,56 @@ class Access_UA {
 	 */
 	private function parseOS() {
 		if ($this->osID === null) {
-			if (preg_match('/Windows NT 6.0/i', $this->ua ?: "")) {
+			if (preg_match('/Windows NT 6.0/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = 'Vista';
-			} elseif (preg_match('/Windows NT 6.1/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 6.1/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = '7';
-			} elseif (preg_match('/Windows NT 6.2/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 6.2/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = '8';
-			} elseif (preg_match('/Windows NT 6.3/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 6.3/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = '8.1';
-			} elseif (preg_match('/Windows NT 10.0/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 10.0/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = '10';
-			} elseif (preg_match('/Windows NT 5.0/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 5.0/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = '2000';
-			} elseif (preg_match('/Windows NT 5.1/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 5.1/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
 				$this->osVersion = 'XP';
-			} elseif (preg_match('/Windows NT 5.2/i', $this->ua ?: "")) {
+			} elseif (preg_match('/Windows NT 5.2/i', $this->ua)) {
 				$this->osID = $this->osName = 'Windows';
-				if (preg_match('/Win64/i', $this->ua ?: "")) {
+				if (preg_match('/Win64/i', $this->ua)) {
 					$this->osVersion = 'XP (64 bit)';
 				} else {
 					$this->osVersion = '2003';
 				}
-			} elseif (preg_match('/Android ([0-9.]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/Android ([0-9.]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Android';
 				$this->osVersion = $matches[1];
-			} elseif (preg_match('/iPhone OS ([_0-9]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/iPhone OS ([_0-9]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'iPhone OS';
 				$this->osVersion = str_replace('_', '.', $matches[1]);
-			} elseif (preg_match('/iPad; CPU OS ([_0-9]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/iPad; CPU OS ([_0-9]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'iPad OS';
 				$this->osVersion = str_replace('_', '.', $matches[1]);
-			} elseif (preg_match('/Mac OS X ([0-9_]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/Mac OS X ([0-9_]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Mac OS X';
 				$this->osVersion = str_replace('_', '.', $matches[1]);
-			} elseif (preg_match('/Linux/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/Linux/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Linux';
 				$this->osVersion = '';
-			} elseif (preg_match('/Ubuntu/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/Ubuntu/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Ubuntu';
 				$this->osVersion = '';
-			} elseif (preg_match('/CrOS i686 ([a-zA-Z0-9.]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/CrOS i686 ([a-zA-Z0-9.]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Chrome OS';
 				$this->osVersion = 'i686 ' . substr($matches[1], 0, 4);
-			} elseif (preg_match('/CrOS x86_64 ([a-zA-Z0-9.]+)/i', $this->ua ?: "", $matches)) {
+			} elseif (preg_match('/CrOS x86_64 ([a-zA-Z0-9.]+)/i', $this->ua, $matches)) {
 				$this->osID = $this->osName = 'Chrome OS';
 				$this->osVersion = 'x86_64 ' . substr($matches[1], 0, 4);
 			} else {
