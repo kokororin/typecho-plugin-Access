@@ -253,7 +253,7 @@ class Access_Core
             } elseif($type == 'month') {
 		        $year = date('Y');
                 $month = date("m");
-                $monthDays = cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)); # 计算当月天数
+                $monthDays = date('t', mktime(0, 0, 0, $month, 1, $year));  # 计算当月天数
                 $this->overview[$type]['time'] = $month;
 
                 # 按天统计数据
