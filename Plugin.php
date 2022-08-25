@@ -22,7 +22,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
     public static function activate()
     {
         $msg = Access_Plugin::install();
-        Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
+        Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'administrator');
         Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
         Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
         Helper::addRoute("access_delete_logs", "/access/log/delete.json", "Access_Action", 'deleteLogs');
