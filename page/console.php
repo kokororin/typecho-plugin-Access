@@ -5,11 +5,10 @@ include 'menu.php';
 require_once __DIR__ . '/../Access_Bootstrap.php';
 $access = new Access_Core();
 ?>
-<link rel="stylesheet" href="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.css')?>">
 <div class="main">
     <div class="body container">
         <div class="typecho-page-title">
-           <h2><?php echo $access->title;?></h2>
+           <h2><?= $access->title;?></h2>
         </div>
         <div class="row typecho-page-main" role="main">
              <div class="col-mb-12">
@@ -40,9 +39,9 @@ $access = new Access_Core();
                             <?php if ($request->get('filter', 'all') != 'all'): ?>
                             <a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('&laquo; 取消筛选'); ?></a>
                             <?php endif; ?>
-                            <input type="hidden" value="<?php echo $request->get('panel'); ?>" name="panel" />
+                            <input type="hidden" value="<?= $request->get('panel'); ?>" name="panel" />
                             <?php if(isset($request->page)): ?>
-                            <input type="hidden" value="<?php echo $request->get('page'); ?>" name="page" />
+                            <input type="hidden" value="<?= $request->get('page'); ?>" name="page" />
                             <?php endif; ?>
                             <select name="filter">
                                 <option <?php if($request->filter == 'all'): ?> selected="true"<?php endif; ?>value="all"><?php _e('所有'); ?></option>
@@ -50,13 +49,13 @@ $access = new Access_Core();
                                 <option <?php if($request->filter == 'post'): ?> selected="true"<?php endif; ?>value="post"><?php _e('按文章'); ?></option>
                                 <option <?php if($request->filter == 'path'): ?> selected="true"<?php endif; ?>value="path"><?php _e('按路由'); ?></option>
                             </select>
-                            <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?php echo htmlspecialchars($request->ip); ?>" name="ip" />
+                            <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->ip); ?>" name="ip" />
                             <select style="<?php if($request->get('filter', 'all') != 'post'): ?>display: none<?php endif; ?>" name="cid">
                                 <?php foreach ($access->logs['cidList'] as $content):?>
-                                <option <?php if($request->cid == $content['cid']): ?> selected="true"<?php endif; ?>value="<?php echo $content['cid'];?>"><?php echo $content['title'];?> (<?php echo $content['count'];?>)</option>
+                                <option <?php if($request->cid == $content['cid']): ?> selected="true"<?php endif; ?>value="<?= $content['cid'];?>"><?= $content['title'];?> (<?= $content['count'];?>)</option>
                                 <?php endforeach;?>
                             </select>
-                            <input style="<?php if($request->get('filter', 'all') != 'path'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?php echo htmlspecialchars($request->path); ?>" name="path" />
+                            <input style="<?php if($request->get('filter', 'all') != 'path'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->path); ?>" name="path" />
                             <select name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
@@ -73,11 +72,12 @@ $access = new Access_Core();
                     <table class="typecho-list-table">
                         <colgroup>
                             <col width="5%"/>
-                            <col width="20%"/>
+                            <col width="28%"/>
                             <col width="25%"/>
                             <col width="18%"/>
+                            <col width="16%"/>
                             <col width="20%"/>
-                            <col width="15%"/>
+                            <col width="18%"/>
                         </colgroup>
                         <thead>
                             <tr>
@@ -85,6 +85,7 @@ $access = new Access_Core();
                                 <th><?php _e('受访地址'); ?></th>
                                 <th><?php _e('UA'); ?></th>
                                 <th><?php _e('IP地址'); ?></th>
+                                <th><?php _e('IP属地'); ?></th>
                                 <th><?php _e('Referer'); ?></th>
                                 <th><?php _e('日期'); ?></th>
                             </tr>
@@ -92,13 +93,14 @@ $access = new Access_Core();
                         <tbody>
                             <?php if(!empty($access->logs['list'])): ?>
                             <?php foreach ($access->logs['list'] as $log): ?>
-                            <tr id="<?php echo $log['id']; ?>" data-id="<?php echo $log['id']; ?>">
-                                <td><input type="checkbox" data-id="<?php echo $log['id']; ?>" value="<?php echo $log['id']; ?>" name="id[]"/></td>
-                                <td><a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=path&path=' . $log['path'] . '&type='. $request->type); ?>"><?php echo urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
-                                <td><a data-action="ua" href="#" title="<?php echo $log['ua'];?>"><?php echo $log['display_name']; ?></a></td>
-                                <td><a data-action="ip" data-ip="<?php echo $access->long2ip($log['ip']); ?>" href="#"><?php echo $access->long2ip($log['ip']); ?></a><?php if($request->filter != 'ip'): ?> <a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=ip&ip=' . $access->long2ip($log['ip']) . '&type='. $request->type); ?>">[ ? ]</a><?php endif; ?></td>
-                                <td><a target="_blank" data-action="referer" href="<?php echo $log['referer']; ?>"><?php echo $log['referer']; ?></a></td>
-                                <td><?php echo date('Y-m-d H:i:s',$log['time']); ?></td>
+                            <tr id="<?= $log['id']; ?>" data-id="<?= $log['id']; ?>">
+                                <td><input type="checkbox" data-id="<?= $log['id']; ?>" value="<?= $log['id']; ?>" name="id[]"/></td>
+                                <td><a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=path&path=' . $log['path'] . '&type='. $request->type); ?>"><?= urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
+                                <td><a data-action="ua" href="#" title="<?= $log['ua'];?>"><?= $log['display_name']; ?></a></td>
+                                <td><a data-action="ip" data-ip="<?= $access->long2ip($log['ip']); ?>" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=ip&ip=' . $access->long2ip($log['ip']) . '&type='. $request->type); ?>"><?= $access->long2ip($log['ip']); ?></td>
+                                <td><?= $log['ip_loc'] ?></td>
+                                <td><a target="_blank" data-action="referer" href="<?= $log['referer']; ?>"><?= $log['referer']; ?></a></td>
+                                <td><?= date('Y-m-d H:i:s', $log['time']); ?></td>
                             </tr>
                             <?php endforeach; ?>
                             <?php else: ?>
@@ -127,7 +129,7 @@ $access = new Access_Core();
 
                         <?php if($access->logs['rows'] > 1): ?>
                         <ul class="typecho-pager">
-                            <?php echo $access->logs['page']; ?>
+                            <?= $access->logs['page']; ?>
                         </ul>
                         <?php endif; ?>
                     </form>
@@ -142,7 +144,7 @@ $access = new Access_Core();
 
                <h4 class="typecho-list-table-title">访问数表格</h4>
 
-                <div class="typecho-table-wrap">
+                <div class="typecho-table-wrap" id="tbl-count">
                     <table class="typecho-list-table">
                         <colgroup>
                             <col width="10%"/>
@@ -159,98 +161,122 @@ $access = new Access_Core();
                             </tr>
                         </thead>
                         <tbody>
-                            <tr>
+                            <tr name="count-today">
                                 <td>今日</td>
-                                <td><?php echo $access->overview['today']['pv']['count'];?></td>
-                                <td><?php echo $access->overview['today']['uv']['count'];?></td>
-                                <td><?php echo $access->overview['today']['ip']['count'];?></td>
+                                <td>loaging...</td>
+                                <td></td>
+                                <td></td>
                             </tr>
-                            <tr>
+                            <tr name="count-yesterday">
                                 <td>昨日</td>
-                                <td><?php echo $access->overview['yesterday']['pv']['count'];?></td>
-                                <td><?php echo $access->overview['yesterday']['uv']['count'];?></td>
-                                <td><?php echo $access->overview['yesterday']['ip']['count'];?></td>
+                                <td>loaging...</td>
+                                <td></td>
+                                <td></td>
                             </tr>
-                            <tr>
+                            <tr name="count-total">
                                 <td>总计</td>
-                                <td><?php echo $access->overview['total']['pv'];?></td>
-                                <td><?php echo $access->overview['total']['uv'];?></td>
-                                <td><?php echo $access->overview['total']['ip'];?></td>
+                                <td>loaging...</td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         </tbody>
                     </table>
                 </div>
 
-               <h4 class="typecho-list-table-title">来源域名</h4>
+                <div class="col-mb-12 col-4">
+                    <h4 class="typecho-list-table-title">来源域名</h4>
 
-                <div class="typecho-table-wrap">
-                    <table class="typecho-list-table">
-                        <colgroup>
-                            <col width="10%"/>
-                            <col width="10%"/>
-                            <col width="80%"/>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>排名</th>
-                                <th>次数</th>
-                                <th>来源域名</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($access->referer['domain'] as $key => $value):?>
-                            <tr>
-                                <td><?php echo $key +1 ?></td>
-                                <td><?php echo $value['count']?></td>
-                                <td><?php echo $value['value']?></td>
-                            </tr>
-                            <?php endforeach;?>
-                        </tbody>
-                    </table>
+                    <div class="typecho-table-wrap">
+                        <table class="typecho-list-table" id="tbl-referer-domain">
+                            <colgroup>
+                                <col width="15%"/>
+                                <col width="15%"/>
+                                <col width="70%"/>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>次数</th>
+                                    <th>来源域名</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>loaging...</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="col-mb-12 col-8">
+                    <h4 class="typecho-list-table-title">来源页</h4>
+
+                    <div class="typecho-table-wrap">
+                        <table class="typecho-list-table" id="tbl-referer-url">
+                            <colgroup>
+                                <col width="15%"/>
+                                <col width="15%"/>
+                                <col width="70%"/>
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th>排名</th>
+                                    <th>次数</th>
+                                    <th>来源URL</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>loaging...</td>
+                                    <td></td>
+                                    <td></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                
+                <div class="col-mb-12">
+                    <h4 class="typecho-list-table-title">文章浏览分析</h4>
+                    <div class="typecho-table-wrap" id="pie-article">loading...</div>
                 </div>
 
-               <h4 class="typecho-list-table-title">来源页</h4>
-
-                <div class="typecho-table-wrap">
-                    <table class="typecho-list-table">
-                        <colgroup>
-                            <col width="10%"/>
-                            <col width="10%"/>
-                            <col width="80%"/>
-                        </colgroup>
-                        <thead>
-                            <tr>
-                                <th>排名</th>
-                                <th>次数</th>
-                                <th>来源URL</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <?php foreach ($access->referer['url'] as $key => $value):?>
-                            <tr>
-                                <td><?php echo $key +1 ?></td>
-                                <td><?php echo $value['count']?></td>
-                                <td><?php echo $value['value']?></td>
-                            </tr>
-                            <?php endforeach;?>
-                        </tbody>
-                    </table>
+                <div class="col-mb-12">
+                    <h4 class="typecho-list-table-title">访客地域分析</h4>
+                    <div class="typecho-table-wrap">
+                        <ul class="typecho-option-tabs clearfix">
+                            <li><button id="btn-china" class="btn btn-s primary">国内</button></li>
+                            <li><button id="btn-inter" class="btn btn-s">国际</button><li>
+                        </ul>
+                        <div class="typecho-table-wrap" id="bar-location">loading...</div>
+                    </div>
                 </div>
 
-                <h4 class="typecho-list-table-title">今日图表</h4>
-                <div class="typecho-table-wrap" id="chart-today"></div>
-
-                <h4 class="typecho-list-table-title">昨日图表</h4>
-                <div class="typecho-table-wrap" id="chart-yesterday"></div>
-            
-                <h4 class="typecho-list-table-title">当月图表</h4>
-                <div class="typecho-table-wrap" id="chart-month"></div>
-            </div><!-- end .typecho-list -->
+                <div class="col-mb-12">
+                    <h4 class="typecho-list-table-title">今日图表</h4>
+                    <div class="typecho-table-wrap" id="chart-today"></div>
+                </div>
+                
+                <div class="col-mb-12">
+                    <h4 class="typecho-list-table-title">昨日图表</h4>
+                    <div class="typecho-table-wrap" id="chart-yesterday"></div>
+                </div>
+                
+                <div class="col-mb-12">
+                    <h4 class="typecho-list-table-title">当月图表</h4>
+                    <div class="typecho-table-wrap" id="chart-month"></div>
+                </div>
+            </div>
+            <!-- end .typecho-list -->
 
 
             <?php endif;?>
 
-        </div><!-- end .typecho-page-main -->
+        </div>
+        <!-- end .typecho-page-main -->
     </div>
 </div>
 
@@ -262,69 +288,71 @@ include 'table-js.php';
 <script type="text/javascript">
 $(document).ready(function() {
     $('a[data-action="ua"]').click(function() {
-        swal('User-Agent', $.trim($(this).attr('title')), 'info');
-        return false;
-    });
-
-    $('a[data-action="ip"]').click(function() {
-        swal('IP查询中...', '正在查询...', 'info');
-        $.ajax({
-            url: '<?php echo rtrim(Helper::options()->index, '/').'/access/ip.json';?>',
-            method: 'get',
-            dataType: 'json',
-            data: {ip: $(this).data('ip')},
-            success: function(data) {
-                if (data.code == 0) {
-                    swal('IP查询成功', data.data, 'success');
-                } else {
-                    swal('IP查询失败', data.data, 'warning');
-                }
-            },
-            error: function() {
-                swal('IP查询失败', '网络异常或PHP环境配置异常', 'warning');
-            }
+        swal({
+            icon: 'info',
+            title: 'User-Agent', 
+            text: $(this).attr('title').trim()
         });
-        return false;
     });
 
     $('.dropdown-menu a[data-action="delete"]').click(function() {
         swal({
-          title: '你确定?',
-          text: '你确认要删除这些记录吗?',
-          type: 'warning',
-          showCancelButton: true,
-          confirmButtonColor: '#DD6B55',
-          confirmButtonText: '是的',
-          cancelButtonText: '算啦',
-          closeOnConfirm: false
-        }, function() {
-                var ids = [];
+            title: '你确定?',
+            text: '你确认要删除这些记录吗?',
+            icon: 'warning',
+            buttons: {
+                cancel: '算啦',
+                confirm: '是的'
+            }
+        }).then((value) => {
+            if(value === true) {
+                let ids = [];
                 $('.typecho-list-table input[type="checkbox"]').each(function(index, elem) {
                     if (elem.checked) {
                         ids.push($(elem).data('id'));
                     }
                 });
-
-                if (ids.length == 0) {
-                    return swal('错误', '你并没有勾选任何内容', 'warning');
-                }
-                $.ajax({
-                    url: '<?php echo rtrim(Helper::options()->index, '/').'/access/log/delete.json';?>',
-                    method: 'post',
-                    dataType: 'json',
-                    contentType: 'application/json',
-                    data: JSON.stringify(ids),
-                    success: function(data) {
-                        if (data.code == 0) {
-                            swal('删除成功', '所选记录已删除', 'success');
-                            $.each(ids, function(index, elem) {
-                                $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
+                if(ids.length != 0) {
+                    $.ajax({
+                        url: '/access/log/delete',
+                        method: 'post',
+                        dataType: 'json',
+                        contentType: 'application/json',
+                        data: JSON.stringify(ids),
+                        success: function(data) {
+                            if (data.code == 0) {
+                                swal({
+                                    icon: 'success',
+                                    title: '删除成功',
+                                    text: '所选记录已删除'
+                                });
+                                $.each(ids, function(index, elem) {
+                                    $('.typecho-list-table tbody tr[data-id="' + elem + '"]').fadeOut(500).remove();
+                                });
+                            } else {
+                                swal({
+                                    icon: 'error',
+                                    title: '错误',
+                                    text: '删除出错啦'
+                                });
+                            }
+                        },
+                        error: function(xhr, status, error) {
+                            swal({
+                                icon: 'error',
+                                title: '错误',
+                                text: '请求错误 code: '+xhr.status
                             });
-                        } else {
-                            swal('错误', '发生错误了', 'warning');
                         }
-                    }
-                });
+                    });
+                } else {
+                    return swal({
+                        icon: 'warning',
+                        title: '错误',
+                        text: '你并没有勾选任何内容'
+                    });
+                }
+            }
         });
         var $this = $(this);
         $this.parents('.dropdown-menu').hide().prev().removeClass('active');
@@ -358,38 +386,248 @@ $(document).ready(function() {
         var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
 
         if ($filterSelect.val() == 'ip' && !ipRegex.test($ipInput.val())) {
-            return swal('筛选条件错误', 'IP地址不合法', 'warning');
+            return swal({
+                icon: 'error',
+                title: '筛选条件错误',
+                text: 'IP地址不合法'
+            });
         }
 
         $form.submit();
     });
 });
 </script>
-<script src="<?php $options->pluginUrl('Access/lib/sweetalert/sweetalert.min.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/sweetalert.min.js')?>"></script>
 <?php if($access->action == 'overview'):?>
-<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/highcharts.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/lib/highcharts/js/modules/exporting.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/highcharts.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/exporting.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/accessibility.js')?>"></script>
 <script type="text/javascript">
-chartData = <?php echo $access->overview['chart_data'] ?>;
-printChart = function(target, data) {
-    target.highcharts({
-        title: {text: data['title'], x: -20},
-        subtitle: {text: data['sub_title'], x: -20},
-        xAxis: {categories: data['xAxis']},
-        yAxis: {title: {text: '数量'},plotLines: [{value: 0,width: 1,color: '#808080'}]},
+// html转义
+htmlEncode = function(target) {
+    return target.replace(/[<>&"]/g, function(c){ 
+        return {'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c];
+    });
+}
+// 输出图表
+printChart = function(target, title, data, avg=null) {
+    let pv = [], uv = [], ip = [], time = [];
+    for(let i = 0;i < data.length;i++)
+        pv.push(data[i].pv), uv.push(data[i].uv), ip.push(data[i].ip), time.push(data[i].time);
+    const chart = Highcharts.chart(target, {
+        title: {text: title, x: -20},
+        subtitle: {text: 'Generate By AccessPlugin', x: -20},
+        xAxis: {categories: time, title: {text: '时间', align: 'high'}},
+        yAxis: {
+            title: {text: '数量'},
+            plotLines: (avg !== null) ? [
+                // 平均值
+                {
+                    value: avg.pv,
+                    width: 1,
+                    color: '#F7A35C'
+                }, {
+                    value: avg.uv,
+                    width: 1,
+                    color: '#90ED7D'
+                }, {
+                    value: avg.ip,
+                    width: 1,
+                    color: '#7CB5ED'
+                }
+            ] : null
+        },
         tooltip: {valueSuffix: ''},
-        plotOptions: {line: {dataLabels: {enabled: true},enableMouseTracking: false}},
+        plotOptions: {line: {dataLabels: {enabled: true}}},
         series: [
-            {name: 'PV（浏览）',data: data['pv']['detail']}, 
-            {name: 'UV（访客）',data: data['uv']['detail']},
-            {name: 'IP（地址）',data: data['ip']['detail']}
+            {
+                name: 'PV（浏览）',
+                data: pv,
+                color: '#F7A35C'
+            }, {
+                name: 'UV（访客）',
+                data: uv,
+                color: '#90ED7D'
+            }, {
+                name: 'IP（地址）',
+                data: ip,
+                color: '#7CB5ED'
+            }
         ]
     });
 }
-$(document).ready(function() {
-    printChart($('#chart-today'), chartData['today']);
-    printChart($('#chart-yesterday'), chartData['yesterday']);
-    printChart($('#chart-month'), chartData['month']);
+// 输出饼图
+printPie = function(target, title, data) {
+    let value = [];
+    // 生成统计row
+    for(let i = 0;i < data.length;i++)
+        value.push({name: data[i].title, y: data[i].count, cid: data[i].cid})
+    // 计算最大比例并选中
+    let maxKey = 0;
+    for(let i = 0;i < value.length;i++) {
+        if(value[i].y >= value[maxKey].y)
+            maxKey = i;
+    }
+    if(value.length)
+        value[maxKey].sliced = true;
+    const chart = Highcharts.chart(target, {
+        chart: {type: 'pie'},
+        title: {text: title},
+        subtitle: {text: 'Generate By AccessPlugin'},
+        tooltip: {pointFormat: '<b>阅读数: {point.y}<br>占比: {point.percentage:.1f}%<br>cid={point.cid}</b>'},
+        accessibility: {point: {valueSuffix: '%'}},
+        plotOptions: {pie: {allowPointSelect: true, cursor: 'pointer', dataLabels: {enabled: true, format: '<b>{point.name}</b>: {point.y}'}}},
+        series: [{colorByPoint: true, data: value}]
+    })
+}
+// 输出条形统计图
+printBar = function(target, title, data) {
+    let values = [],
+        areas = [];
+    for(let i = 0;i < data.length;i++)
+        areas.push(data[i].area), values.push(data[i].count);
+    return Highcharts.chart(target, {
+        chart: {type: 'bar'},
+        title: {text: title, x: -20},
+        subtitle: {text: 'Generate By AccessPlugin', x: -20},
+        xAxis: {categories: areas, title: {text: '地域'}},
+        yAxis: {title: {text: '访问次数', align: 'high'}},
+        plotOptions: {bar: {dataLabels: {enabled: true}, colorByPoint: true}},
+        legend: {enabled: false},
+        series: [{name: '访问量', data: values}]
+    });
+}
+
+updateBar = function(target, title, data) {
+    let values = [],
+        areas = [];
+    for(let i = 0;i < data.length;i++)
+        areas.push(data[i].area), values.push(data[i].count);
+    target.update({
+        title: {text: title},
+        xAxis: {categories: areas, title: {text: '地域'}},
+        series: [{name: '访问量', data: values}]
+    }, true, false, {duration: 800});
+}
+
+// 显示来源统计表
+printRefererTable = function(target, data) {
+    let tbl = $('#'+target+' tbody');
+    tbl.children().remove(); // 清空表格
+    for(let i = 0;i < data.length;i++) {
+        tbl.append('<tr><td>'+(i+1)+'</td><td>'+data[i].count+'</td><td>'+htmlEncode(data[i].value)+'</td><td></td></tr>');
+    }
+}
+
+// 拉取统计数据
+getStatisticData = function(rpc, params=null, callback) {
+    $.ajax({
+        url: '/access/statistic/view',
+        method: 'get',
+        dataType: 'json',
+        data: {rpc: rpc, ...params},
+        async: true,
+        success: function(data) {
+            if(data.code === 0)
+                callback(data.data);
+            else
+                console.log('rpc='+rpc+'数据获取错误 code='+data.code+' msg='+data.message);
+        },
+        error: function(xhr, status, error) {
+            console.log('rpc='+rpc+' API拉取错误 '+error.toString());
+        }
+    })
+}
+
+// 挂接format方法
+Date.prototype.format = function(fmt) {
+    var o = {
+        '%Y+': this.getFullYear(), // 年
+        '%m+': this.getMonth() + 1, //月份
+        '%d+': this.getDate(), //日
+        '%H+': this.getHours(), //小时
+        '%M+': this.getMinutes(), //分
+        '%S+': this.getSeconds(), //秒
+        '%Q+': Math.floor((this.getMonth() + 3) / 3), //季度
+        '%s+': this.getMilliseconds() //毫秒
+    };
+    for(var k in o)
+        if(new RegExp("(" + k + ")").test(fmt))
+            fmt = fmt.replace(RegExp.$1, 
+                (RegExp.$1.length == 2) ? 
+                    o[k] : (('00' + o[k]).substr(('' + o[k]).length))
+            );
+    return fmt;
+}
+
+$().ready(function() {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
+
+    // 今日计数统计数据
+    getStatisticData('count', {type: 'day', time: today.format('%Y-%mm-%dd')} ,function(data) {
+        let row = $('#tbl-count tr[name="count-today"] td');
+        row.eq(1).text(data.count.pv), row.eq(2).text(data.count.uv), row.eq(3).text(data.count.ip);
+    });
+    // 昨日计数统计数据
+    getStatisticData('count', {type: 'day', time: yesterday.format('%Y-%mm-%dd')} ,function(data) {
+        let row = $('#tbl-count tr[name="count-yesterday"] td');
+        row.eq(1).text(data.count.pv), row.eq(2).text(data.count.uv), row.eq(3).text(data.count.ip);
+    });
+    // 总计数统计数据
+    getStatisticData('count', {type: 'total'} ,function(data) {
+        let row = $('#tbl-count tr[name="count-total"] td');
+        row.eq(1).text(data.count.pv), row.eq(2).text(data.count.uv), row.eq(3).text(data.count.ip);
+    });
+
+    // 来源域名统计
+    getStatisticData('referer', {type: 'domain', pn: 1, ps: 10} ,function(data) {
+        printRefererTable('tbl-referer-domain', data);
+    });
+    // 来源页统计
+    getStatisticData('referer', {type: 'url', pn: 1, ps: 10} ,function(data) {
+        printRefererTable('tbl-referer-url', data);
+    });
+
+    // 文章浏览比例统计
+    getStatisticData('article', {ps: 10} ,function(data) {
+        printPie('pie-article', '最受欢迎的文章', data);
+    });
+
+    // 浏览地域分析图
+    getStatisticData('location', {cate: 'china', ps: 10} ,function(data) {
+        const chartBar = printBar('bar-location', '国内访问地域分析', data);
+        // 国际按钮
+        $('#btn-inter').click(function(){
+            $('#btn-inter').addClass('primary');
+            $('#btn-china').removeClass('primary');
+            getStatisticData('location', {cate: 'inter', ps: 10} ,function(data) {
+                updateBar(chartBar, '国际访问地域分析', data)
+            });
+        });
+        // 国内按钮
+        $('#btn-china').click(function(){
+            $('#btn-china').addClass('primary');
+            $('#btn-inter').removeClass('primary');
+            getStatisticData('location', {cate: 'china', ps: 10} ,function(data) {
+                updateBar(chartBar, '国内访问地域分析', data)
+            });
+        });
+    });
+
+    // 当天访问图表
+    getStatisticData('chart', {type: 'day', time: today.format('%Y-%mm-%dd')} ,function(data) {
+        printChart('chart-today', data.dst+' 统计', data.chart, data.avg);
+    });
+    // 昨天访问图表
+    getStatisticData('chart', {type: 'day', time: yesterday.format('%Y-%mm-%dd')} ,function(data) {
+        printChart('chart-yesterday', data.dst+' 统计', data.chart, data.avg);
+    });
+    // 当月访问图表
+    getStatisticData('chart', {type: 'month', time: today.format('%Y-%mm')} ,function(data) {
+        printChart('chart-month', data.dst+' 统计', data.chart, data.avg);
+    });
 });
 
 </script>

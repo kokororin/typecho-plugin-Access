@@ -24,8 +24,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
         Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
-        Helper::addRoute("access_ip", "/access/ip.json", "Access_Action", 'ip');
-        Helper::addRoute("access_delete_logs", "/access/log/delete.json", "Access_Action", 'deleteLogs');
+        Helper::addRoute("access_delete_logs", "/access/log/delete", "Access_Action", 'deleteLogs');
+        Helper::addRoute('access_statistic_view', '/access/statistic/view', 'Access_Action', 'statistic');
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
         Typecho_Plugin::factory('Widget_Archive')->footer = array('Access_Plugin', 'frontend');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
@@ -49,8 +49,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
         Helper::removePanel(1, self::$panel);
         Helper::removeRoute("access_track_gif");
-        Helper::removeRoute("access_ip");
         Helper::removeRoute("access_delete_logs");
+        Helper::removeRoute("access_statistic_view");
     }
 
     /**
