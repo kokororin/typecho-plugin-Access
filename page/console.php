@@ -163,19 +163,19 @@ $access = new Access_Core();
                         <tbody>
                             <tr name="count-today">
                                 <td>今日</td>
-                                <td>loaging...</td>
+                                <td>loading...</td>
                                 <td></td>
                                 <td></td>
                             </tr>
                             <tr name="count-yesterday">
                                 <td>昨日</td>
-                                <td>loaging...</td>
+                                <td>loading...</td>
                                 <td></td>
                                 <td></td>
                             </tr>
                             <tr name="count-total">
                                 <td>总计</td>
-                                <td>loaging...</td>
+                                <td>loading...</td>
                                 <td></td>
                                 <td></td>
                             </tr>
@@ -202,7 +202,7 @@ $access = new Access_Core();
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>loaging...</td>
+                                    <td>loading...</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
@@ -210,7 +210,7 @@ $access = new Access_Core();
                         </table>
                     </div>
                 </div>
-                
+
                 <div class="col-mb-12 col-8">
                     <h4 class="typecho-list-table-title">来源页</h4>
 
@@ -230,7 +230,7 @@ $access = new Access_Core();
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>loaging...</td>
+                                    <td>loading...</td>
                                     <td></td>
                                     <td></td>
                                 </tr>
@@ -238,7 +238,7 @@ $access = new Access_Core();
                         </table>
                     </div>
                 </div>
-                
+
                 <div class="col-mb-12">
                     <h4 class="typecho-list-table-title">文章浏览分析</h4>
                     <div class="typecho-table-wrap" id="pie-article">loading...</div>
@@ -259,12 +259,12 @@ $access = new Access_Core();
                     <h4 class="typecho-list-table-title">今日图表</h4>
                     <div class="typecho-table-wrap" id="chart-today"></div>
                 </div>
-                
+
                 <div class="col-mb-12">
                     <h4 class="typecho-list-table-title">昨日图表</h4>
                     <div class="typecho-table-wrap" id="chart-yesterday"></div>
                 </div>
-                
+
                 <div class="col-mb-12">
                     <h4 class="typecho-list-table-title">当月图表</h4>
                     <div class="typecho-table-wrap" id="chart-month"></div>
@@ -290,7 +290,7 @@ $(document).ready(function() {
     $('a[data-action="ua"]').click(function() {
         swal({
             icon: 'info',
-            title: 'User-Agent', 
+            title: 'User-Agent',
             text: $(this).attr('title').trim()
         });
     });
@@ -405,7 +405,7 @@ $(document).ready(function() {
 <script type="text/javascript">
 // html转义
 htmlEncode = function(target) {
-    return target.replace(/[<>&"]/g, function(c){ 
+    return target.replace(/[<>&"]/g, function(c){
         return {'<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;'}[c];
     });
 }
@@ -553,8 +553,8 @@ Date.prototype.format = function(fmt) {
     };
     for(var k in o)
         if(new RegExp("(" + k + ")").test(fmt))
-            fmt = fmt.replace(RegExp.$1, 
-                (RegExp.$1.length == 2) ? 
+            fmt = fmt.replace(RegExp.$1,
+                (RegExp.$1.length == 2) ?
                     o[k] : (('00' + o[k]).substr(('' + o[k]).length))
             );
     return fmt;
