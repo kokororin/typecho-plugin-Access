@@ -64,13 +64,14 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
             $this->checkAuth(); # 鉴权
             if(!$this->request->isGet())
                 throw new Exception('Method Not Allowed', 405);
-            
+
             $rpcType = $this->request->get('rpc'); # 业务类型
             $statistic = new Access_Statistic($this->request);
             $data = $statistic->invoke($rpcType); # 进行业务分发并调取数据
             $errCode = 0;
             $errMsg = 'ok';
         } catch (Exception $e) {
+            $data = null;
             $errCode = $e->getCode();
             $errMsg = $e->getMessage();
         }
