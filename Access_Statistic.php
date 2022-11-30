@@ -41,7 +41,7 @@ class Access_Statistic {
                 if(!preg_match('/^\d{4}-\d{2}$/', $dstTime))
                     throw new Exception('Bad Request', 400);
                 [$year, $month] = explode('-', $dstTime);
-                $monthDays = cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)); # 计算当月天数
+                $monthDays = date('t', mktime(0, 0, 0, intval($month), 1, intval($year))); # 计算当月天数
                 $startTime = strtotime(date("{$dstTime}-01 00:00:00"));
                 $endTime = strtotime(date("{$dstTime}-{$monthDays} 23:59:59"));
                 break;
@@ -193,7 +193,7 @@ class Access_Statistic {
                     throw new Exception('Bad Request', 400);
                 [$year, $month] = explode('-', $dstTime);
                 $loopStart = 1;
-                $loopEnd = cal_days_in_month(CAL_GREGORIAN, intval($month), intval($year)); # 计算当月天数
+                $loopEnd = date('t', mktime(0, 0, 0, intval($month), 1, intval($year))); # 计算当月天数
                 break;
             default:
                 throw new Exception('Bad Request', 400);
