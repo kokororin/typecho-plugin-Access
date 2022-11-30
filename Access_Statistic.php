@@ -6,7 +6,7 @@ if (!defined('__ACCESS_PLUGIN_ROOT__')) {
 class Access_Statistic {
     private $db;
     private $request;
-    
+
     public function __construct($request) {
         $this->db = Typecho_Db::get();
         $this->request = $request;
@@ -27,7 +27,7 @@ class Access_Statistic {
             # 总计数据
             case 'total':
                 $startTime = 0;
-                $endTime = time();
+                $endTime = 0;
                 break;
             # 按天统计
             case 'day':
@@ -53,8 +53,10 @@ class Access_Statistic {
         # ip数
         $subQuery = $this->db
             ->select('DISTINCT ip')
-            ->from('table.access_log')
-            ->where("time >= ? AND time <= ?", $startTime, $endTime);
+            ->from('table.access_log');
+        if ($endTime > 0) {
+            $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
+        }
         if(method_exists($subQuery, 'prepare'))
             $subQuery = $subQuery->prepare($subQuery);
         $resp['count']['ip'] = intval($this->db->fetchRow(
@@ -65,8 +67,10 @@ class Access_Statistic {
         # 访客数
         $subQuery = $this->db
             ->select('DISTINCT ip, ua')
-            ->from('table.access_log')
-            ->where("time >= ? AND time <= ?", $startTime, $endTime);
+            ->from('table.access_log');
+        if ($endTime > 0) {
+            $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
+        }
         if(method_exists($subQuery, 'prepare'))
             $subQuery = $subQuery->prepare($subQuery);
         $resp['count']['uv'] = intval($this->db->fetchRow(
@@ -75,15 +79,16 @@ class Access_Statistic {
             ->from('(' . $subQuery . ') AS tmp')
         )['cnt']);
         # 浏览数
-        $resp['count']['pv'] = intval($this->db->fetchRow(
-            $this->db
+        $subQuery = $this->db
             ->select('COUNT(1) AS cnt')
-            ->from('table.access_log')
-            ->where("time >= ? AND time <= ?", $startTime, $endTime)
-        )['cnt']);
+            ->from('table.access_log');
+        if ($endTime > 0) {
+            $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
+        }
+        $resp['count']['pv'] = intval($this->db->fetchRow($subQuery)['cnt']);
         return $resp;
     }
-    
+
     /**
      * 获取文章访问统计
      *
