@@ -49,6 +49,10 @@ $access = new Access_Core();
                                 <option <?php if($request->filter == 'post'): ?> selected="true"<?php endif; ?>value="post"><?php _e('按文章'); ?></option>
                                 <option <?php if($request->filter == 'path'): ?> selected="true"<?php endif; ?>value="path"><?php _e('按路由'); ?></option>
                             </select>
+                            <select style="<?php if(!in_array($request->get('filter', 'all'), ['ip', 'path'])): ?>display: none<?php endif; ?>" name="fuzzy">
+                                <option <?php if($request->fuzzy != '1'): ?> selected="true"<?php endif; ?>value=""><?php _e('精确匹配'); ?></option>
+                                <option <?php if($request->fuzzy == '1'): ?> selected="true"<?php endif; ?>value="1"><?php _e('模糊匹配'); ?></option>
+                            </select>
                             <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->ip); ?>" name="ip" />
                             <select style="<?php if($request->get('filter', 'all') != 'post'): ?>display: none<?php endif; ?>" name="cid">
                                 <?php foreach ($access->logs['cidList'] as $content):?>
@@ -363,24 +367,38 @@ $(document).ready(function() {
     var $cidSelect = $form.find('select[name="cid"]');
     var $pathInput = $form.find('input[name="path"]');
     var $filterSelect = $form.find('select[name="filter"]');
+    var $fuzzySelect = $form.find('select[name="fuzzy"]');
 
     $filterSelect.on('change', function() {
         $ipInput.removeAttr('placeholder').val('').hide();
         $cidSelect.hide();
         $pathInput.removeAttr('placeholder').val('').hide();
+        $fuzzySelect.hide();
 
         switch ($filterSelect.val()) {
             case 'ip':
                 $ipInput.attr('placeholder', '输入ip').show();
+                $fuzzySelect.show();
                 break;
             case 'post':
                 $cidSelect.show();
                 break;
             case 'path':
                 $pathInput.attr('placeholder', '输入路由').show();
+                $fuzzySelect.show();
                 break;
         }
     });
+
+    $fuzzySelect.on('change', function(e) {
+        if (e.target.value === '1') {
+            $ipInput.val($ipInput.val().replace(/%/u, '\\%'));
+            $pathInput.val($ipInput.val().replace(/%/u, '\\%'));
+        } else {
+            $ipInput.val($ipInput.val().replace(/\\%/u, '%'));
+            $pathInput.val($ipInput.val().replace(/\\%/u, '%'));
+        }
+    })
 
     $form.find('button[type="button"]').on('click', function() {
         $form.submit();
