@@ -68,10 +68,10 @@ class Access_Core
         $filter = $this->request->get('filter', 'all');
         $pagenum = $this->request->get('page', 1);
         $offset = (max(intval($pagenum), 1) - 1) * $this->config->pageSize;
-        $query = $this->db->select()->from('table.access_log')
+        $query = $this->db->select()->from('table.access_logs')
             ->order('time', Typecho_Db::SORT_DESC)
             ->offset($offset)->limit($this->config->pageSize);
-        $qcount = $this->db->select('count(1) AS count')->from('table.access_log');
+        $qcount = $this->db->select('count(1) AS count')->from('table.access_logs');
         switch ($type) {
             case 1:
                 $query->where('robot = ?', 0);
@@ -87,7 +87,6 @@ class Access_Core
         switch ($filter) {
             case 'ip':
                 $ip = $this->request->get('ip', '');
-                $ip = bindec(decbin(ip2long($ip)));
                 $query->where('ip = ?', $ip);
                 $qcount->where('ip = ?', $ip);
                 break;
@@ -128,7 +127,7 @@ class Access_Core
         $this->logs['list'] = $this->htmlEncode($this->urlDecode($list));
 
         $this->logs['rows'] = $this->db->fetchAll($qcount)[0]['count'];
-        
+
         $filter = $this->request->get('filter', 'all');
         $filterOptions = $this->request->get($filter);
 
@@ -145,10 +144,10 @@ class Access_Core
         $this->logs['page'] = $page->show();
 
         $this->logs['cidList'] = $this->db->fetchAll($this->db->select('DISTINCT content_id as cid, COUNT(1) as count, table.contents.title')
-                ->from('table.access_log')
-                ->join('table.contents', 'table.access_log.content_id = table.contents.cid')
-                ->where('table.access_log.content_id <> ?', null)
-                ->group('table.access_log.content_id')
+                ->from('table.access_logs')
+                ->join('table.contents', 'table.access_logs.content_id = table.contents.cid')
+                ->where('table.access_logs.content_id <> ?', null)
+                ->group('table.access_logs.content_id')
                 ->order('count', Typecho_Db::SORT_DESC));
     }
 
@@ -232,7 +231,7 @@ class Access_Core
     public function deleteLogs($ids)
     {
         foreach ($ids as $id) {
-            $this->db->query($this->db->delete('table.access_log')
+            $this->db->query($this->db->delete('table.access_logs')
                     ->where('id = ?', $id)
             );
         }
@@ -288,11 +287,8 @@ class Access_Core
             } catch(Excpetion $e) {
                 $ip_country = $ip_province = $ip_city = '未知';
             }
-            
-            # ip转int
-            $ip = bindec(decbin(ip2long($ip)));
         } else {
-            $ip = 0;
+            $ip = '';
         }
 
         $entrypoint = $this->getEntryPoint();
@@ -337,7 +333,7 @@ class Access_Core
         );
 
         try {
-            $this->db->query($this->db->insert('table.access_log')->rows($rows));
+            $this->db->query($this->db->insert('table.access_logs')->rows($rows));
         } catch (Exception $e) {} catch (Typecho_Db_Query_Exception $e) {}
     }
 
@@ -351,7 +347,7 @@ class Access_Core
     public static function rewriteLogs()
     {
         $db = Typecho_Db::get();
-        $rows = $db->fetchAll($db->select()->from('table.access_log'));
+        $rows = $db->fetchAll($db->select()->from('table.access_logs'));
         foreach ($rows as $row) {
             $ua = new Access_UA($row['ua']);
             $row['browser_id'] = $ua->getBrowserID();
@@ -362,7 +358,7 @@ class Access_Core
             $row['robot_id'] = $ua->getRobotID();
             $row['robot_version'] = $ua->getRobotVersion();
             try {
-                $db->query($db->update('table.access_log')->rows($row)->where('id = ?', $row['id']));
+                $db->query($db->update('table.access_logs')->rows($row)->where('id = ?', $row['id']));
             } catch (Typecho_Db_Exception $e) {
                 throw new Typecho_Plugin_Exception(_t('刷新数据库失败：%s。', $e->getMessage()));
             }
@@ -395,7 +391,7 @@ class Access_Core
             'meta_id' => $meta_id,
         );
     }
-    
+
     public function long2ip($long) {
         if ($long < 0 || $long > 4294967295) return false;
         $ip = "";

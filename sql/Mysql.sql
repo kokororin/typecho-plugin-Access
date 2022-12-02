@@ -1,4 +1,4 @@
-CREATE TABLE `typecho_access_log` (
+CREATE TABLE `typecho_access_logs` (
   `id`                int(10) unsigned NOT NULL auto_increment,
   `ua`                varchar(512)     default ''  ,
   `browser_id`        varchar(32)      default ''  ,
@@ -8,7 +8,7 @@ CREATE TABLE `typecho_access_log` (
   `url`               varchar(255)     default ''  ,
   `path`              varchar(255)     default ''  ,
   `query_string`      varchar(255)     default ''  ,
-  `ip`                int(32) unsigned default '0' ,
+  `ip`                varchar(64)      default ''  ,
   `ip_country`        varchar(255)     default ''  ,
   `ip_province`       varchar(255)     default ''  ,
   `ip_city`           varchar(255)     default ''  ,

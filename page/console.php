@@ -97,7 +97,7 @@ $access = new Access_Core();
                                 <td><input type="checkbox" data-id="<?= $log['id']; ?>" value="<?= $log['id']; ?>" name="id[]"/></td>
                                 <td><a target="_self" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=path&path=' . $log['path'] . '&type='. $request->type); ?>"><?= urldecode(str_replace("%23", "#", $log['url'])); ?></a></td>
                                 <td><a data-action="ua" href="#" title="<?= $log['ua'];?>"><?= $log['display_name']; ?></a></td>
-                                <td><a data-action="ip" data-ip="<?= $access->long2ip($log['ip']); ?>" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=ip&ip=' . $access->long2ip($log['ip']) . '&type='. $request->type); ?>"><?= $access->long2ip($log['ip']); ?></td>
+                                <td><a data-action="ip" data-ip="<?= $log['ip'] ?>" href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&filter=ip&ip=' . $log['ip'] . '&type='. $request->type); ?>"><?= $log['ip']; ?></td>
                                 <td><?= $log['ip_loc'] ?></td>
                                 <td><a target="_blank" data-action="referer" href="<?= $log['referer']; ?>"><?= $log['referer']; ?></a></td>
                                 <td><?= date('Y-m-d H:i:s', $log['time']); ?></td>
@@ -383,16 +383,6 @@ $(document).ready(function() {
     });
 
     $form.find('button[type="button"]').on('click', function() {
-        var ipRegex = /^(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.(25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
-
-        if ($filterSelect.val() == 'ip' && !ipRegex.test($ipInput.val())) {
-            return swal({
-                icon: 'error',
-                title: '筛选条件错误',
-                text: 'IP地址不合法'
-            });
-        }
-
         $form.submit();
     });
 });

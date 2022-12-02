@@ -53,7 +53,7 @@ class Access_Statistic {
         # ip数
         $subQuery = $this->db
             ->select('DISTINCT ip')
-            ->from('table.access_log');
+            ->from('table.access_logs');
         if ($endTime > 0) {
             $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
         }
@@ -67,7 +67,7 @@ class Access_Statistic {
         # 访客数
         $subQuery = $this->db
             ->select('DISTINCT ip, ua')
-            ->from('table.access_log');
+            ->from('table.access_logs');
         if ($endTime > 0) {
             $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
         }
@@ -81,7 +81,7 @@ class Access_Statistic {
         # 浏览数
         $subQuery = $this->db
             ->select('COUNT(1) AS cnt')
-            ->from('table.access_log');
+            ->from('table.access_logs');
         if ($endTime > 0) {
             $subQuery->where("time >= ? AND time <= ?", $startTime, $endTime);
         }
@@ -104,7 +104,7 @@ class Access_Statistic {
             $this->db->fetchAll(
                 $this->db
                 ->select('content_id AS cid, table.contents.title AS title, COUNT(1) AS cnt')
-                ->from('table.access_log')
+                ->from('table.access_logs')
                 ->join('table.contents', 'content_id = table.contents.cid', Typecho_Db::INNER_JOIN)
                 ->where('IFNULL(content_id, 0)')
                 ->group('content_id')
@@ -138,7 +138,7 @@ class Access_Statistic {
                 $fetchData = $this->db->fetchAll(
                     $this->db
                     ->select("IF(ip_province = '中国', '国内未明确', ip_province) AS area, COUNT(1) AS cnt")
-                    ->from('table.access_log')
+                    ->from('table.access_logs')
                     ->where("ip_country = '中国'")
                     ->group('area')
                     ->order('cnt', Typecho_Db::SORT_DESC)
@@ -150,7 +150,7 @@ class Access_Statistic {
                 $fetchData = $this->db->fetchAll(
                     $this->db
                     ->select("ip_country AS area, COUNT(1) AS cnt")
-                    ->from('table.access_log')
+                    ->from('table.access_logs')
                     ->group('area')
                     ->order('cnt', Typecho_Db::SORT_DESC)
                     ->limit(15)
@@ -217,7 +217,7 @@ class Access_Statistic {
             # ip数
             $subQuery = $this->db
                 ->select('DISTINCT ip')
-                ->from('table.access_log')
+                ->from('table.access_logs')
                 ->where('time >= ? AND time <= ?', $startTime, $endTime);
             if(method_exists($subQuery, 'prepare'))
                 $subQuery = $subQuery->prepare($subQuery);
@@ -229,7 +229,7 @@ class Access_Statistic {
             # 访客数
             $subQuery = $this->db
                 ->select('DISTINCT ip,ua')
-                ->from('table.access_log')
+                ->from('table.access_logs')
                 ->where('time >= ? AND time <= ?', $startTime, $endTime);
             if(method_exists($subQuery, 'prepare'))
                 $subQuery = $subQuery->prepare($subQuery);
@@ -242,7 +242,7 @@ class Access_Statistic {
             $chart['pv'] = intval($this->db->fetchRow(
                 $this->db
                 ->select('COUNT(1) AS count')
-                ->from('table.access_log')
+                ->from('table.access_logs')
                 ->where('time >= ? AND time <= ?', $startTime, $endTime)
             )['count']);
             $resp['chart'][] = $chart;
@@ -282,7 +282,7 @@ class Access_Statistic {
                 $fetchData = $this->db->fetchAll(
                     $this->db
                     ->select('DISTINCT entrypoint AS value, COUNT(1) as cnt')
-                    ->from('table.access_log')
+                    ->from('table.access_logs')
                     ->where("entrypoint != ''")
                     ->group('entrypoint')
                     ->order('cnt', Typecho_Db::SORT_DESC)
@@ -292,7 +292,7 @@ class Access_Statistic {
             case 'domain':
                 $fetchData = $this->db->fetchAll($this->db
                     ->select('DISTINCT entrypoint_domain AS value, COUNT(1) as cnt')
-                    ->from('table.access_log')
+                    ->from('table.access_logs')
                     ->where("entrypoint_domain != ''")
                     ->group('entrypoint_domain')
                     ->order('cnt', Typecho_Db::SORT_DESC)

@@ -45,7 +45,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
         if ($config->isDrop == 0) {
             $db = Typecho_Db::get();
-            $db->query("DROP TABLE `{$db->getPrefix()}access_log`", Typecho_Db::WRITE);
+            $db->query("DROP TABLE `{$db->getPrefix()}access_logs`", Typecho_Db::WRITE);
         }
         Helper::removePanel(1, self::$panel);
         Helper::removeRoute("access_track_gif");
@@ -104,7 +104,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         }
         $db = Typecho_Db::get();
         $adapterName = $db->getAdapterName();
-        
+
         if (strpos($adapterName, 'Mysql') !== false) {
             $prefix  = $db->getPrefix();
             $scripts = file_get_contents('usr/plugins/Access/sql/Mysql.sql');
@@ -114,7 +114,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             try {
                 $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
                 # 初始化数据库如果不存在
-                if (!$db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+                if (!$db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_logs';", Typecho_Db::READ))) {
                     foreach ($scripts as $script) {
                         $script = trim($script);
                         if ($script) {
@@ -135,7 +135,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
                         $row['os_version'       ] = $ua->getOSVersion();
                         $row['path'             ] = parse_url($row['url'], PHP_URL_PATH);
                         $row['query_string'     ] = parse_url($row['url'], PHP_URL_QUERY);
-                        $row['ip'               ] = bindec(decbin(ip2long($row['ip'])));
+                        $row['ip'               ] = $row['ip'];
                         $row['entrypoint'       ] = $row['referer'];
                         $row['entrypoint_domain'] = $row['referer_domain'];
                         $row['time'             ] = $row['date'];
@@ -144,13 +144,27 @@ class Access_Plugin implements Typecho_Plugin_Interface
                         $row['robot_version'    ] = $ua->getRobotVersion();
                         unset($row['date']);
                         try {
-                            $db->query($db->insert('table.access_log')->rows($row));
+                            $db->query($db->insert('table.access_logs')->rows($row));
                         } catch (Typecho_Db_Exception $e) {
                             if ($e->getCode() != 23000)
                                 throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
                         }
                     }
                     $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
+                    $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
+                }
+                if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+                    $rows = $db->fetchAll($db->select()->from('table.access_log'));
+                    foreach ($rows as $row) {
+                        $row['ip'] = long2ip($row['ip']);
+                        try {
+                            $db->query($db->insert('table.access_logs')->rows($row));
+                        } catch (Typecho_Db_Exception $e) {
+                            if ($e->getCode() != 23000)
+                                throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+                        }
+                    }
+                    $db->query("DROP TABLE `{$prefix}access_log`;", Typecho_Db::WRITE);
                     $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
                 }
                 return $msg;
@@ -167,7 +181,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
             try {
                 $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
                 # 初始化数据库如果不存在
-                if (!$db->fetchRow($db->query("SELECT name FROM sqlite_master WHERE TYPE='table' AND name='{$prefix}access_log';", Typecho_Db::READ))) {
+                if (!$db->fetchRow($db->query("SELECT name FROM sqlite_master WHERE TYPE='table' AND name='{$prefix}access_logs';", Typecho_Db::READ))) {
                     foreach ($scripts as $script) {
                         $script = trim($script);
                         if ($script) {
