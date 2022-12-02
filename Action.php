@@ -32,6 +32,9 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
     {
         try {
             $this->checkAuth();
+            if(!$this->request->isGet())
+                throw new Exception('Method Not Allowed', 405);
+
             $data = @file_get_contents('php://input');
             $data = Json::decode($data, true);
             if (!is_array($data)) {
