@@ -53,13 +53,13 @@ $access = new Access_Core();
                                 <option <?php if($request->fuzzy != '1'): ?> selected="true"<?php endif; ?>value=""><?php _e('精确匹配'); ?></option>
                                 <option <?php if($request->fuzzy == '1'): ?> selected="true"<?php endif; ?>value="1"><?php _e('模糊匹配'); ?></option>
                             </select>
-                            <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->ip); ?>" name="ip" />
+                            <input style="<?php if($request->get('filter', 'all') != 'ip'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->ip ?: ''); ?>" name="ip" />
                             <select style="<?php if($request->get('filter', 'all') != 'post'): ?>display: none<?php endif; ?>" name="cid">
                                 <?php foreach ($access->logs['cidList'] as $content):?>
                                 <option <?php if($request->cid == $content['cid']): ?> selected="true"<?php endif; ?>value="<?= $content['cid'];?>"><?= $content['title'];?> (<?= $content['count'];?>)</option>
                                 <?php endforeach;?>
                             </select>
-                            <input style="<?php if($request->get('filter', 'all') != 'path'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->path); ?>" name="path" />
+                            <input style="<?php if($request->get('filter', 'all') != 'path'): ?>display: none<?php endif; ?>" type="text" class="text-s" placeholder="" value="<?= htmlspecialchars($request->path ?: ''); ?>" name="path" />
                             <select name="type">
                                 <option <?php if($request->type == 1): ?> selected="true"<?php endif; ?>value="1"><?php _e('默认(仅人类)'); ?></option>
                                 <option <?php if($request->type == 2): ?> selected="true"<?php endif; ?>value="2"><?php _e('仅爬虫'); ?></option>
