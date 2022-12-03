@@ -29,7 +29,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
         Typecho_Plugin::factory('Widget_Archive')->footer = array('Access_Plugin', 'frontend');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');
-        return _t($msg);
+        return $msg ? _t($msg) : '';
     }
 
     /**
