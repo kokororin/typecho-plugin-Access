@@ -43,15 +43,15 @@ class Access_Core
         $ipdbPath = dirname(__file__).'/lib/ipipfree.ipdb';
         $this->ipdb = new Access_Ip($ipdbPath);
         switch ($this->request->get('action')) {
-            case 'overview':
-                $this->action = 'overview';
-                $this->title = _t('访问概览');
-                break;
             case 'logs':
-            default:
                 $this->action = 'logs';
                 $this->title = _t('访问日志');
                 $this->parseLogs();
+                break;
+            case 'overview':
+            default:
+                $this->action = 'overview';
+                $this->title = _t('访问概览');
                 break;
         }
     }
