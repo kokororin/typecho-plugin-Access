@@ -62,6 +62,27 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
         }
     }
 
+    public function logs() {
+        try {
+            $this->checkAuth(); # 鉴权
+            $rpcType = $this->request->get('rpc'); # 业务类型
+            $logs = new Access_Logs($this->request);
+            $data = $logs->invoke($rpcType); # 进行业务分发并调取数据
+            $errCode = 0;
+            $errMsg = 'ok';
+        } catch (Exception $e) {
+            $data = null;
+            $errCode = $e->getCode();
+            $errMsg = $e->getMessage();
+        }
+
+        $this->response->throwJson([
+            'code' => $errCode,
+            'message' => $errMsg,
+            'data' => $data
+        ]);
+    }
+
     public function statistic() {
         try {
             $this->checkAuth(); # 鉴权
