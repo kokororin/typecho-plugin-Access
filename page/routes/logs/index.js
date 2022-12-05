@@ -195,7 +195,7 @@ $(document).ready(function () {
       },
       error: function (xhr, status, error) {
         if (!silent) {
-          $('body').loadingModal('hide');
+          $('.typecho-list').loadingModal('hide');
         }
         swal({
           icon: "error",
@@ -228,6 +228,7 @@ $(document).ready(function () {
   }
 
   $('button[data-action="filter-apply"]').click(function() {
+    setPageNum(1);
     fetchLogs();
     hideFilters();
   });
@@ -241,6 +242,31 @@ $(document).ready(function () {
 
   $('button[data-action="switch-filter"]').click(function() {
     toggleFilters();
+  });
+
+  $('[name="filter-fuzzy"]').change(function(e) {
+    var filters = getFilters();
+    var inputKeys = ['ua', 'ip', 'path'];
+    if (e.target.value === '1') {
+      $(inputKeys).each(function(_, k) {
+        if (filters[k] === '') {
+          filters[k] = '%';
+        } else {
+          // MySQL escape: https://dev.mysql.com/doc/refman/8.0/en/string-comparison-functions.html
+          filters[k] = filters[k].replace(/[%_]/gu, function(s) { return '\\' + s; });
+        }
+      });
+    } else {
+      $(inputKeys).each(function(_, k) {
+        if (filters[k] === '%') {
+          filters[k] = '';
+        } else {
+          // MySQL escape: https://dev.mysql.com/doc/refman/8.0/en/string-comparison-functions.html
+          filters[k] = filters[k].replace(/\\[%_]/gu, function(s) { return s.substring(1); });
+        }
+      });
+    }
+    setFilters(filters);
   });
 
   $('input[name="page-jump"]').on('keypress', function(e) {

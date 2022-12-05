@@ -50,7 +50,7 @@
         <div class="typecho-access-logs-filter-item">
           <label class="typecho-access-logs-filter-item__label">访客类型</label>
           <select class="typecho-access-logs-filter-item__content" name="filter-robot">
-            <option value="0"><?php _e('默认(仅人类)'); ?></option>
+            <option value="0"><?php _e('仅人类'); ?></option>
             <option value="1"><?php _e('仅爬虫'); ?></option>
             <option value=""><?php _e('所有'); ?></option>
           </select>

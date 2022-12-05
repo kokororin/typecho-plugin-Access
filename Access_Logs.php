@@ -48,13 +48,13 @@ class Access_Logs {
         if ($ua !== $empty) {
             $query->where('ua' . $compare, $ua);
         }
-        if ($cid !== $empty) {
+        if ($cid !== '') {
             $query->where('content_id' . $compare, $cid);
         }
         if ($path !== $empty) {
             $query->where('path' . $compare, $path);
         }
-        if ($robot !== $empty) {
+        if ($robot !== '') {
             $query->where('robot = ?', $robot);
         }
     }
