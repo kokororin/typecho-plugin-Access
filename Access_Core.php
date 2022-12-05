@@ -41,7 +41,7 @@ class Access_Core
         }
         $this->ua = new Access_UA($this->request->getAgent());
         $ipdbPath = dirname(__file__).'/lib/ipipfree.ipdb';
-        $this->ipdb = new Access_Ip($ipdbPath);
+        $this->ipdb = new Access_IpDb($ipdbPath);
         switch ($this->request->get('action')) {
             case 'logs':
                 $this->action = 'logs';

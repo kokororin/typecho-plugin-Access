@@ -7,7 +7,7 @@ if (!defined('__ACCESS_PLUGIN_ROOT__')) {
     throw new Exception('Boostrap file not found');
 }
 
-class Access_Ip {
+class Access_IpDb {
     public $reader = NULL;
 
     public function __construct($db) {
@@ -263,5 +263,3 @@ class Reader {
         return $this->meta['build'];
     }
 }
-
-
