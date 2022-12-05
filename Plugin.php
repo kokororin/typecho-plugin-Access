@@ -24,7 +24,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
         Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
-        Helper::addRoute("access_delete_logs", "/access/log/delete", "Access_Action", 'deleteLogs');
         Helper::addRoute("access_logs", "/access/logs", "Access_Action", 'logs');
         Helper::addRoute('access_statistic_view', '/access/statistic/view', 'Access_Action', 'statistic');
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');

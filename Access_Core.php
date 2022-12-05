@@ -46,7 +46,6 @@ class Access_Core
             case 'logs':
                 $this->action = 'logs';
                 $this->title = _t('访问日志');
-                $this->parseLogs();
                 break;
             case 'overview':
             default:
@@ -54,172 +53,6 @@ class Access_Core
                 $this->title = _t('访问概览');
                 break;
         }
-    }
-
-    /**
-     * 生成详细访问日志数据，提供给页面渲染使用
-     *
-     * @access public
-     * @return void
-     */
-    protected function parseLogs()
-    {
-        $type = $this->request->get('type', 1);
-        $filter = $this->request->get('filter', 'all');
-        $fuzzy = $this->request->get('fuzzy', '');
-        $pagenum = $this->request->get('page', 1);
-        $offset = (max(intval($pagenum), 1) - 1) * $this->config->pageSize;
-        $query = $this->db->select()->from('table.access_logs')
-            ->order('time', Typecho_Db::SORT_DESC)
-            ->offset($offset)->limit($this->config->pageSize);
-        $qcount = $this->db->select('count(1) AS count')->from('table.access_logs');
-        switch ($type) {
-            case 1:
-                $query->where('robot = ?', 0);
-                $qcount->where('robot = ?', 0);
-                break;
-            case 2:
-                $query->where('robot = ?', 1);
-                $qcount->where('robot = ?', 1);
-                break;
-            default:
-                break;
-        }
-        switch ($filter) {
-            case 'ip':
-                $ip = $this->request->get('ip', '');
-                if ($fuzzy == '1') {
-                    $query->where('ip LIKE ?', $ip);
-                    $qcount->where('ip LIKE ?', $ip);
-                } else {
-                    $query->where('ip = ?', $ip);
-                    $qcount->where('ip = ?', $ip);
-                }
-                break;
-            case 'post':
-                $cid = $this->request->get('cid', '');
-                if ($fuzzy == '1') {
-                    $query->where('content_id LIKE ?', $cid);
-                    $qcount->where('content_id LIKE ?', $cid);
-                } else {
-                    $query->where('content_id = ?', $cid);
-                    $qcount->where('content_id = ?', $cid);
-                }
-                break;
-            case 'path':
-                $path = $this->request->get('path', '');
-                if ($fuzzy == '1') {
-                    $query->where('path LIKE ?', $path);
-                    $qcount->where('path LIKE ?', $path);
-                } else {
-                    $query->where('path = ?', $path);
-                    $qcount->where('path = ?', $path);
-                }
-                break;
-        }
-        $list = $this->db->fetchAll($query);
-        foreach ($list as &$row) {
-            $ua = new Access_UA($row['ua']);
-            if ($ua->isRobot()) {
-                $name = $ua->getRobotID();
-                $version = $ua->getRobotVersion();
-            } else {
-                $name = $ua->getBrowserName();
-                $version = $ua->getBrowserVersion();
-            }
-            if ($name == '') {
-                $row['display_name'] = _t('未知');
-            } elseif ($version == '') {
-                $row['display_name'] = $name;
-            } else {
-                $row['display_name'] = $name . ' / ' . $version;
-            }
-            if($row['ip_country'] == '中国') {
-                $row['ip_loc'] = "{$row['ip_province']} {$row['ip_city']}";
-            } else {
-                $row['ip_loc'] = $row['ip_country'];
-            }
-        }
-        $this->logs['list'] = $this->htmlEncode($this->urlDecode($list));
-
-        $this->logs['rows'] = $this->db->fetchAll($qcount)[0]['count'];
-
-        $filter = $this->request->get('filter', 'all');
-        $filterOptions = $this->request->get($filter);
-
-        $filterArr = array(
-            'filter' => $filter,
-            $filter => $filterOptions
-        );
-
-        $page = new Access_Page($this->config->pageSize, $this->logs['rows'], $pagenum, 10, array_merge($filterArr, array(
-            'panel' => Access_Plugin::$panel,
-            'action' => 'logs',
-            'type' => $type,
-        )));
-        $this->logs['page'] = $page->show();
-
-        $this->logs['cidList'] = $this->db->fetchAll($this->db->select('DISTINCT content_id as cid, COUNT(1) as count, table.contents.title')
-                ->from('table.access_logs')
-                ->join('table.contents', 'table.access_logs.content_id = table.contents.cid')
-                ->where('table.access_logs.content_id <> ?', null)
-                ->group('table.access_logs.content_id')
-                ->order('count', Typecho_Db::SORT_DESC));
-    }
-
-    /**
-     * 编码数组中的字符串为 HTML 实体
-     * 默认只有数组的值被编码，下标不被编码
-     * 如果数据类型是数组，那么它的所有子元素都将被递归编码
-     * 只有字符串类型才会被编码
-     * @param array $data 将要被编码的数据
-     * @param bool $valuesOnly 是否只编码数组数值，如果为 false 那么所有下标和值都将被编码
-     * @param string $charset 字符串编码方式，默认为 UTF-8
-     * @return array 编码后的数据
-     * @see http://www.php.net/manual/en/function.htmlspecialchars.php
-     */
-    protected function htmlEncode($data, $valuesOnly = true, $charset = 'UTF-8')
-    {
-        if (is_array($data)) {
-            $d = array();
-            foreach ($data as $key => $value) {
-                if (!$valuesOnly) {
-                    $key = $this->htmlEncode($key, $valuesOnly, $charset);
-                }
-                $d[$key] = $this->htmlEncode($value, $valuesOnly, $charset);
-            }
-            $data = $d;
-        } elseif (is_string($data)) {
-            $data = htmlspecialchars($data, ENT_QUOTES | ENT_SUBSTITUTE, $charset);
-        }
-        return $data;
-    }
-
-    /**
-     * 解析所有 URL 编码过的字符
-     * 默认只有数组的值被解码，下标不被解码
-     * 如果数据类型是数组，那么它的所有子元素都将被递归解码
-     * 只有字符串类型才会被解码
-     * @param array $data 将要被解码的数据
-     * @param bool $valuesOnly 是否只解码数组数值，如果为 false 那么所有下标和值都将被解码
-     * @return array 解码后的数据
-     * @see http://www.php.net/manual/en/function.urldecode.php
-     */
-    protected function urlDecode($data, $valuesOnly = true)
-    {
-        if (is_array($data)) {
-            $d = array();
-            foreach ($data as $key => $value) {
-                if (!$valuesOnly) {
-                    $key = $this->urlDecode($key, $valuesOnly);
-                }
-                $d[$key] = $this->urlDecode($value, $valuesOnly);
-            }
-            $data = $d;
-        } elseif (is_string($data)) {
-            $data = urldecode($data);
-        }
-        return $data;
     }
 
     /**
@@ -239,27 +72,12 @@ class Access_Core
     }
 
     /**
-     * 删除记录
-     *
-     * @access public
-     * @return void
-     */
-    public function deleteLogs($ids)
-    {
-        foreach ($ids as $id) {
-            $this->db->query($this->db->delete('table.access_logs')
-                    ->where('id = ?', $id)
-            );
-        }
-    }
-
-    /**
      * 获取首次进入网站时的来源
      *
-     * @access public
+     * @access private
      * @return string
      */
-    public function getEntryPoint()
+    private function getEntryPoint()
     {
         $entrypoint = $this->request->getReferer();
         if ($entrypoint == null) {
@@ -407,16 +225,4 @@ class Access_Core
             'meta_id' => $meta_id,
         );
     }
-
-    public function long2ip($long) {
-        if ($long < 0 || $long > 4294967295) return false;
-        $ip = "";
-        for ($i=3;$i>=0;$i--) {
-            $ip .= (int)($long / pow(256,$i));
-            $long -= (int)($long / pow(256,$i))*pow(256,$i);
-            if ($i>0) $ip .= ".";
-        }
-        return $ip;
-    }
-
 }

@@ -28,33 +28,6 @@ class Access_Action extends Typecho_Widget implements Widget_Interface_Do
         echo $image;
     }
 
-    public function deleteLogs()
-    {
-        try {
-            $this->checkAuth();
-            if(!$this->request->isGet())
-                throw new Exception('Method Not Allowed', 405);
-
-            $data = @file_get_contents('php://input');
-            $data = Json::decode($data, true);
-            if (!is_array($data)) {
-                throw new Exception('params invalid');
-            }
-            $this->access->deleteLogs($data);
-            $response = array(
-                'code' => 0,
-            );
-
-        } catch (Exception $e) {
-            $response = array(
-                'code' => 100,
-                'data' => $e->getMessage(),
-            );
-        }
-
-        $this->response->throwJson($response);
-    }
-
     protected function checkAuth()
     {
         if (!$this->access->isAdmin()) {
