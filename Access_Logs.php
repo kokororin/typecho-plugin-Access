@@ -93,7 +93,7 @@ class Access_Logs {
         $resp['pagination'] = [
             'size' => $pageSize,
             'current' => $pageNum,
-            'total' => floor($resp['count'] / $pageSize),
+            'total' => max(floor($resp['count'] / $pageSize), 1),
         ];
         $resp['logs'] = $this->db->fetchAll($dataQuery);
         foreach ($resp['logs'] as &$row) {
@@ -167,7 +167,7 @@ class Access_Logs {
 
         $resp['count'] = $this->db->fetchAll($counterQuery)[0]['count'];
         // delete more than one page requires 2nd time confirmation
-        if ($resp['count'] <= $this->config->pageSize || $force) {
+        if ($resp['count'] <= $this->config->pageSize || $force === 'force') {
             $this->db->query($operatorQuery);
         } else {
             $resp['requireForce'] = true;
