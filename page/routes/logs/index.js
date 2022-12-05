@@ -29,21 +29,31 @@ $(document).ready(function () {
     $('[name="filter-robot"]').val('robot' in filters ? filters.robot : '');
   }
 
-  function fetchLogs() {
+  function hideFilters() {
+    $('.typecho-access-logs-filter').removeClass('typecho-access-logs-filter--visible');
+  }
+
+  function toggleFilters() {
+    $('.typecho-access-logs-filter').toggleClass('typecho-access-logs-filter--visible');
+  }
+
+  function fetchLogs(silent) {
     var startTime = new Date().valueOf();
-    $('.typecho-list')
-      .loadingModal({ text: '正在获取数据...', backgroundColor: '#292d33' })
-      .loadingModal(
-        'animation',
-        [
-          'doubleBounce',
-          'rotatingPlane',
-          // 'wave',
-          // 'wanderingCubes',
-          'foldingCube',
-        ][Math.floor(Math.random() * 3)]
-      )
-      .loadingModal('show');
+    if (!silent) {
+      $('.typecho-list')
+        .loadingModal({ text: '正在获取数据...', backgroundColor: '#292d33' })
+        .loadingModal(
+          'animation',
+          [
+            'doubleBounce',
+            'rotatingPlane',
+            // 'wave',
+            // 'wanderingCubes',
+            'foldingCube',
+          ][Math.floor(Math.random() * 3)]
+        )
+        .loadingModal('show');
+    }
 
     $.ajax({
       url: "/access/logs",
@@ -55,13 +65,15 @@ $(document).ready(function () {
         { rpc: 'get', page: getPageNum() }
       ),
       success: function (res) {
-        // make sure loading animation visible for better experience
-        var minDuring = 300;
-        var during = new Date().valueOf() - startTime;
-        if (during < minDuring) {
-          setTimeout(function() { $('.typecho-list').loadingModal('hide'); }, minDuring - during);
-        } else {
-          $('.typecho-list').loadingModal('hide');
+        if (!silent) {
+          // make sure loading animation visible for better experience
+          var minDuring = 300;
+          var during = new Date().valueOf() - startTime;
+          if (during < minDuring) {
+            setTimeout(function() { $('.typecho-list').loadingModal('hide'); }, minDuring - during);
+          } else {
+            $('.typecho-list').loadingModal('hide');
+          }
         }
         if (res.code === 0) {
           // logs list
@@ -119,9 +131,10 @@ $(document).ready(function () {
             // append row to table body
             $tbody.append($tr);
           });
-          // logs pagination
           $('a[data-action="search-anchor"]').click(onSearchAnchorClick);
 
+          // logs pagination
+          setPageNum(res.data.pagination.current);
           var $pagination;
           $pagination = $('.typecho-pager');
           $pagination.html('');
@@ -147,7 +160,7 @@ $(document).ready(function () {
               )
             );
           }
-          for (let index = startPage; index <= stopPage; index++) {
+          for (var index = startPage; index <= stopPage; index++) {
             $pagination.append(
               $('<li />', { class: index === res.data.pagination.current ? 'current' : '' })
                 .append(
@@ -181,7 +194,9 @@ $(document).ready(function () {
         }
       },
       error: function (xhr, status, error) {
-        $('body').loadingModal('hide');
+        if (!silent) {
+          $('body').loadingModal('hide');
+        }
         swal({
           icon: "error",
           title: "错误",
@@ -194,7 +209,7 @@ $(document).ready(function () {
   function onSearchAnchorClick(e) {
     setPageNum(1);
     setFilters(JSON.parse(e.target.getAttribute('data-filter')));
-    $('button[data-action="apply"]').first().click();
+    $('button[data-action="filter-apply"]').first().click();
   }
 
   function onPrevPage() {
@@ -212,20 +227,20 @@ $(document).ready(function () {
     fetchLogs();
   }
 
-  $('button[data-action="apply"]').click(function() {
+  $('button[data-action="filter-apply"]').click(function() {
     fetchLogs();
-    $('.typecho-access-logs-filter').removeClass('typecho-access-logs-filter--visible');
+    hideFilters();
   });
 
-  $('button[data-action="reset"]').click(function() {
+  $('button[data-action="filter-reset"]').click(function() {
     setPageNum(1);
     setFilters({ robot: '0' });
     fetchLogs();
-    $('.typecho-access-logs-filter').removeClass('typecho-access-logs-filter--visible');
+    hideFilters();
   });
 
   $('button[data-action="switch-filter"]').click(function() {
-    $('.typecho-access-logs-filter').toggleClass('typecho-access-logs-filter--visible');
+    toggleFilters();
   });
 
   $('input[name="page-jump"]').on('keypress', function(e) {
@@ -243,10 +258,109 @@ $(document).ready(function () {
     });
   });
 
+  function deleteLogs(filters) {
+    function action(force) {
+      $.ajax({
+        url: "/access/logs",
+        method: "post",
+        dataType: "json",
+        data: Object.assign(
+          {},
+          filters,
+          {
+            rpc: 'delete',
+            force: force ? 'force' : '',
+          }
+        ),
+        success: function (res) {
+          if (res.code === 0) {
+            if (res.data.requireForce) {
+              swal({
+                title: "你确定?",
+                text: "本次操作将删除" + res.data.count + "条记录，你确认要删除这些记录吗?",
+                icon: "warning",
+                buttons: {
+                  cancel: "算啦",
+                  confirm: "是的",
+                },
+              }).then((value) => {
+                if (value === true) {
+                  action(true);
+                }
+              });
+            } else {
+              swal({
+                icon: "success",
+                title: "删除成功",
+                text: "成功删除" + res.data.count + "条记录",
+              });
+              if (filters.ids) {
+                $.each(JSON.parse(filters.ids), function (index, elem) {
+                  $('.typecho-list-table tbody tr[data-id="' + elem + '"]')
+                    .fadeOut(500)
+                    .remove();
+                });
+                setTimeout(function() { fetchLogs(true); }, 480);
+              } else {
+                fetchLogs(false);
+              }
+              hideFilters();
+            }
+          } else {
+            swal({
+              icon: "error",
+              title: "错误",
+              text: "删除出错啦",
+            });
+          }
+        },
+        error: function (xhr, status, error) {
+          swal({
+            icon: "error",
+            title: "错误",
+            text: "请求错误 code: " + xhr.status,
+          });
+        },
+      });
+    }
+    action(false);
+  }
+
   $('.dropdown-menu a[data-action="delete"]').click(function () {
+    var ids = [];
+    $('.typecho-list-table input[type="checkbox"]').each(function (index, elem) {
+      if (elem.checked) {
+        ids.push($(elem).data("id"));
+      }
+    });
+    if (ids.length === 0) {
+      swal({
+        icon: "warning",
+        title: "错误",
+        text: "你并没有勾选任何内容",
+      });
+    } else {
+      swal({
+        title: "你确定?",
+        text: "你确认要删除选中的" + ids.length + "条记录吗?",
+        icon: "warning",
+        buttons: {
+          cancel: "算啦",
+          confirm: "是的",
+        },
+      }).then((value) => {
+        if (value === true) {
+          deleteLogs({ ids: JSON.stringify(ids) });
+        }
+      });
+    }
+    $(this).parents(".dropdown-menu").hide().prev().removeClass("active");
+  });
+
+  $('[data-action="filter-delete"]').click(function() {
     swal({
       title: "你确定?",
-      text: "你确认要删除这些记录吗?",
+      text: "将按照过滤器批量删除符合条件的记录，你确认要删除吗?",
       icon: "warning",
       buttons: {
         cancel: "算啦",
@@ -254,83 +368,9 @@ $(document).ready(function () {
       },
     }).then((value) => {
       if (value === true) {
-        let ids = [];
-        $('.typecho-list-table input[type="checkbox"]').each(function (
-          index,
-          elem
-        ) {
-          if (elem.checked) {
-            ids.push($(elem).data("id"));
-          }
-        });
-        if (ids.length != 0) {
-          function action(force) {
-            $.ajax({
-              url: "/access/logs",
-              method: "post",
-              dataType: "json",
-              data: {
-                rpc: 'delete',
-                ids: JSON.stringify(ids),
-                force: force,
-              },
-              success: function (res) {
-                if (res.code == 0) {
-                  if (res.data.requireForce) {
-                    swal({
-                      title: "你确定?",
-                      text: "本次操作将删除" + res.data.count + "条记录，你确认要删除这些记录吗?",
-                      icon: "warning",
-                      buttons: {
-                        cancel: "算啦",
-                        confirm: "是的",
-                      },
-                    }).then((value) => {
-                      if (value === true) {
-                        action(true);
-                      }
-                    })
-                  } else {
-                    swal({
-                      icon: "success",
-                      title: "删除成功",
-                      text: "成功删除" + res.data.count + "条记录",
-                    });
-                    $.each(ids, function (index, elem) {
-                      $('.typecho-list-table tbody tr[data-id="' + elem + '"]')
-                        .fadeOut(500)
-                        .remove();
-                    });
-                  }
-                } else {
-                  swal({
-                    icon: "error",
-                    title: "错误",
-                    text: "删除出错啦",
-                  });
-                }
-              },
-              error: function (xhr, status, error) {
-                swal({
-                  icon: "error",
-                  title: "错误",
-                  text: "请求错误 code: " + xhr.status,
-                });
-              },
-            });
-          }
-          action(false);
-        } else {
-          return swal({
-            icon: "warning",
-            title: "错误",
-            text: "你并没有勾选任何内容",
-          });
-        }
+        deleteLogs(getFilters());
       }
     });
-    var $this = $(this);
-    $this.parents(".dropdown-menu").hide().prev().removeClass("active");
   });
 
   var $form = $("form.search-form");

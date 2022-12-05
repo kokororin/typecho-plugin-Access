@@ -1,3 +1,11 @@
+<script src="<?php $options->pluginUrl('Access/page/components/object.assign/index.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/components/sweetalert/index.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/components/dayjs/index.js')?>"></script>
+<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.css')?>">
+<script defer src="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.js')?>"></script>
+<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/routes/logs/index.css')?>">
+<script defer src="<?php $options->pluginUrl('Access/page/routes/logs/index.js')?>"></script>
+
 <div class="col-mb-12 typecho-list">
   <div class="typecho-list-operate clearfix">
     <div class="operate">
@@ -11,8 +19,8 @@
     </div>
 
     <div class="search typecho-access-logs-search" role="search">
-      <button data-action="apply" type="button" class="btn btn-s"><?php _e('刷新'); ?></button>
-      <button data-action="switch-filter" type="button" class="btn btn-s"><?php _e('筛选'); ?></button>
+      <button data-action="filter-apply" type="button" class="btn btn-s"><?php _e('刷 新'); ?></button>
+      <button data-action="switch-filter" type="button" class="btn btn-s"><?php _e('筛 选'); ?></button>
       <div class="typecho-access-logs-filter">
         <div class="typecho-access-logs-filter-item">
           <label class="typecho-access-logs-filter-item__label">匹配方式</label>
@@ -48,8 +56,13 @@
           </select>
         </div>
         <div class="typecho-access-logs-filter-apply">
-          <button class="btn btn-m typecho-access-logs-filter-apply__btn" data-action="reset" type="button"><?php _e('重 置'); ?></button>
-          <button class="btn btn-m typecho-access-logs-filter-apply__btn" data-action="apply" type="button"><?php _e('应 用'); ?></button>
+          <div>
+            <button class="btn btn-m btn-warn typecho-access-logs-filter-apply__btn" data-action="filter-delete" type="button"><?php _e('批量删除'); ?></button>
+          </div>
+          <div>
+            <button class="btn btn-m typecho-access-logs-filter-apply__btn" data-action="filter-reset" type="button"><?php _e('重 置'); ?></button>
+            <button class="btn btn-m primary typecho-access-logs-filter-apply__btn" data-action="filter-apply" type="button"><?php _e('应 用'); ?></button>
+          </div>
         </div>
       </div>
     </div>
@@ -113,11 +126,3 @@
     <ul class="typecho-pager"></ul>
   </div>
 </div>
-
-<script src="<?php $options->pluginUrl('Access/page/components/object.assign/index.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/page/components/sweetalert/index.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/page/components/dayjs/index.js')?>"></script>
-<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.css')?>">
-<script defer src="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.js')?>"></script>
-<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/routes/logs/index.css')?>">
-<script defer src="<?php $options->pluginUrl('Access/page/routes/logs/index.js')?>"></script>

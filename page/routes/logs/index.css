@@ -34,6 +34,8 @@ a[data-action="search-anchor"] {
   display: block;
   flex: 0 0 auto;
   width: 100px;
+  display: flex;
+  align-items: center;
 }
 
 .typecho-access-logs-filter-item__content {
@@ -43,7 +45,11 @@ a[data-action="search-anchor"] {
 .typecho-access-logs-filter-apply {
   padding: 15px 10px 10px;
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
+}
+
+.typecho-access-logs-filter-apply > div {
+  flex: 0 0 auto;
 }
 
 .typecho-access-logs-filter-apply > *:not(:last-child) {
@@ -52,6 +58,10 @@ a[data-action="search-anchor"] {
 
 .typecho-access-logs-filter-apply__btn {
   flex: 0 0 auto;
+}
+
+.typecho-access-logs-filter-apply__btn + .typecho-access-logs-filter-apply__btn {
+  margin-left: 10px;
 }
 
 .typecho-access-logs-pagination-jump {
