@@ -399,46 +399,22 @@ $(document).ready(function () {
     });
   });
 
-  var $form = $("form.search-form");
-  var $ipInput = $form.find('input[name="ip"]');
-  var $cidSelect = $form.find('select[name="cid"]');
-  var $pathInput = $form.find('input[name="path"]');
-  var $filterSelect = $form.find('select[name="filter"]');
-  var $fuzzySelect = $form.find('select[name="fuzzy"]');
-
-  $filterSelect.on("change", function () {
-    $ipInput.removeAttr("placeholder").val("").hide();
-    $cidSelect.hide();
-    $pathInput.removeAttr("placeholder").val("").hide();
-    $fuzzySelect.hide();
-
-    switch ($filterSelect.val()) {
-      case "ip":
-        $ipInput.attr("placeholder", "输入ip").show();
-        $fuzzySelect.show();
-        break;
-      case "post":
-        $cidSelect.show();
-        break;
-      case "path":
-        $pathInput.attr("placeholder", "输入路由").show();
-        $fuzzySelect.show();
-        break;
-    }
-  });
-
-  $fuzzySelect.on("change", function (e) {
-    if (e.target.value === "1") {
-      $ipInput.val($ipInput.val().replace(/%/u, "\\%"));
-      $pathInput.val($ipInput.val().replace(/%/u, "\\%"));
-    } else {
-      $ipInput.val($ipInput.val().replace(/\\%/u, "%"));
-      $pathInput.val($ipInput.val().replace(/\\%/u, "%"));
-    }
-  });
-
-  $form.find('button[type="button"]').on("click", function () {
-    $form.submit();
+  $.ajax({
+    url: "/access/logs",
+    method: "get",
+    dataType: "json",
+    data: { rpc: 'cids' },
+    success: function (res) {
+      if (res.code === 0) {
+        var $select = $('select[name="filter-cid"]');
+        $.each(res.data.list, function(_, item) {
+          $select.append(
+            $('<option />', { value: item.cid })
+              .text(item.title + ' (' + item.count + ')')
+          );
+        });
+      }
+    },
   });
 
   fetchLogs();

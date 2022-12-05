@@ -42,6 +42,10 @@ a[data-action="search-anchor"] {
   flex: 1 1 auto;
 }
 
+select.typecho-access-logs-filter-item__content {
+  width: 100%;
+}
+
 .typecho-access-logs-filter-apply {
   padding: 15px 10px 10px;
   display: flex;

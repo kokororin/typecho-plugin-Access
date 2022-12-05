@@ -11,6 +11,7 @@ class Access_Logs {
     private static $rpcTypes = [
         'get' => 'GET',
         'delete' => 'POST',
+        'cids' => 'GET',
     ];
 
     private $config;
@@ -172,6 +173,27 @@ class Access_Logs {
         } else {
             $resp['requireForce'] = true;
         }
+
+        return $resp;
+    }
+
+    /**
+     * 获取日志 id 列表
+     *
+     * @access private
+     * @return ?array
+     * @throws Exception
+     */
+    public function cids(): ?array
+    {
+        $resp = [];
+
+        $list = $this->db->fetchAll($this->db->select('DISTINCT content_id as cid, COUNT(1) as count, table.contents.title')
+            ->from('table.access_logs')
+            ->join('table.contents', 'table.access_logs.content_id = table.contents.cid')
+            ->group('table.access_logs.content_id')
+            ->order('count', Typecho_Db::SORT_DESC));
+        $resp['list'] = $list;
 
         return $resp;
     }
