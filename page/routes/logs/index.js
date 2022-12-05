@@ -264,42 +264,62 @@ $(document).ready(function () {
           }
         });
         if (ids.length != 0) {
-          $.ajax({
-            url: "/access/logs",
-            method: "post",
-            dataType: "json",
-            data: {
-              rpc: 'delete',
-              ids: JSON.stringify(ids),
-            },
-            success: function (res) {
-              if (res.code == 0) {
-                swal({
-                  icon: "success",
-                  title: "删除成功",
-                  text: "成功删除" + res.data.count + "条记录",
-                });
-                $.each(ids, function (index, elem) {
-                  $('.typecho-list-table tbody tr[data-id="' + elem + '"]')
-                    .fadeOut(500)
-                    .remove();
-                });
-              } else {
+          function action(force) {
+            $.ajax({
+              url: "/access/logs",
+              method: "post",
+              dataType: "json",
+              data: {
+                rpc: 'delete',
+                ids: JSON.stringify(ids),
+                force: force,
+              },
+              success: function (res) {
+                if (res.code == 0) {
+                  if (res.data.requireForce) {
+                    swal({
+                      title: "你确定?",
+                      text: "本次操作将删除" + res.data.count + "条记录，你确认要删除这些记录吗?",
+                      icon: "warning",
+                      buttons: {
+                        cancel: "算啦",
+                        confirm: "是的",
+                      },
+                    }).then((value) => {
+                      if (value === true) {
+                        action(true);
+                      }
+                    })
+                  } else {
+                    swal({
+                      icon: "success",
+                      title: "删除成功",
+                      text: "成功删除" + res.data.count + "条记录",
+                    });
+                    $.each(ids, function (index, elem) {
+                      $('.typecho-list-table tbody tr[data-id="' + elem + '"]')
+                        .fadeOut(500)
+                        .remove();
+                    });
+                  }
+                } else {
+                  swal({
+                    icon: "error",
+                    title: "错误",
+                    text: "删除出错啦",
+                  });
+                }
+              },
+              error: function (xhr, status, error) {
                 swal({
                   icon: "error",
                   title: "错误",
-                  text: "删除出错啦",
+                  text: "请求错误 code: " + xhr.status,
                 });
-              }
-            },
-            error: function (xhr, status, error) {
-              swal({
-                icon: "error",
-                title: "错误",
-                text: "请求错误 code: " + xhr.status,
-              });
-            },
-          });
+              },
+            });
+          }
+          action(false);
         } else {
           return swal({
             icon: "warning",

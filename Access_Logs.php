@@ -142,6 +142,7 @@ class Access_Logs {
         $cid = $this->request->get('cid', '');
         $path = $this->request->get('path', '');
         $robot = $this->request->get('robot', '');
+        $force = $this->request->get('force', '');
         if ($ids) {
             $ids = Json::decode($ids, true);
             if (!is_array($ids)) {
@@ -165,7 +166,12 @@ class Access_Logs {
         }
 
         $resp['count'] = $this->db->fetchAll($counterQuery)[0]['count'];
-        $this->db->query($operatorQuery);
+        // delete more than one page requires 2nd time confirmation
+        if ($resp['count'] <= $this->config->pageSize || $force) {
+            $this->db->query($operatorQuery);
+        } else {
+            $resp['requireForce'] = true;
+        }
 
         return $resp;
     }
