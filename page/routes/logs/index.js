@@ -352,7 +352,11 @@ $(document).ready(function () {
     action(false);
   }
 
-  $('.dropdown-menu a[data-action="delete"]').click(function () {
+  $('.typecho-access-logs-dropdown-btn').click(function() {
+    $(this).next().css({ display: '' });
+  })
+
+  $('[data-action="select-delete"]').click(function () {
     var ids = [];
     $('.typecho-list-table input[type="checkbox"]').each(function (index, elem) {
       if (elem.checked) {

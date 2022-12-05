@@ -6,6 +6,55 @@ a[data-action="search-anchor"] {
   position: relative;
 }
 
+.typecho-access-logs-dropdown-btn {
+  display: flex;
+  align-items: center;
+}
+
+.typecho-access-logs-dropdown-btn__icon {
+  transition: all ease-in-out .3s;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex: 0 0 auto;
+  height: 100%;
+  margin-left: 5px;
+}
+
+.typecho-access-logs-dropdown-btn__icon > i {
+  transform: translateY(20%);
+}
+
+button.active > .typecho-access-logs-dropdown-btn__icon {
+  transform: rotateZ(180deg);
+}
+
+.typecho-access-logs-dropdown {
+  margin-top: 1px;
+  min-width: 73px;
+  border: none;
+  display: block;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity ease-out .3s;
+}
+
+.typecho-access-logs-dropdown > li {
+  background: #e9e9e6;
+  position: relative;
+}
+
+.typecho-access-logs-dropdown > li > button {
+  padding: 5px 10px;
+  border-radius: 0;
+  width: 100%;
+}
+
+button.active + .typecho-access-logs-dropdown {
+  opacity: 1;
+  pointer-events: all;
+}
+
 .typecho-access-logs-filter {
   position: absolute;
   top: 100%;

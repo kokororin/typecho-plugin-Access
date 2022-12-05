@@ -11,9 +11,12 @@
     <div class="operate">
       <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
       <div class="btn-group btn-drop">
-        <button class="btn dropdown-toggle btn-s" type="button"><i class="sr-only"><?php _e('操作'); ?></i><?php _e('选中项'); ?> <i class="i-caret-down"></i></button>
-        <ul class="dropdown-menu">
-          <li><a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a></li>
+        <button class="btn dropdown-toggle btn-s typecho-access-logs-dropdown-btn" type="button">
+          <span><?php _e('选中项'); ?></span>
+          <div class="typecho-access-logs-dropdown-btn__icon"><i class="i-caret-down"></i></div>
+        </button>
+        <ul class="dropdown-menu typecho-access-logs-dropdown">
+          <li><button class="btn-warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
         </ul>
       </div>
     </div>
@@ -105,15 +108,12 @@
         <input type="checkbox" class="typecho-table-select-all" />
       </label>
       <div class="btn-group btn-drop">
-        <button class="btn dropdown-toggle btn-s" type="button">
-          <i class="sr-only"><?php _e('操作'); ?></i>
+        <button class="btn dropdown-toggle btn-s typecho-access-logs-dropdown-btn" type="button">
           <span><?php _e('选中项'); ?></span>
-          <i class="i-caret-down"></i>
+          <div class="typecho-access-logs-dropdown-btn__icon"><i class="i-caret-down"></i></div>
         </button>
-        <ul class="dropdown-menu">
-          <li>
-            <a data-action="delete" href="javascript:;"><?php _e('删除'); ?></a>
-          </li>
+        <ul class="dropdown-menu typecho-access-logs-dropdown">
+          <li><button class="btn-warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
         </ul>
       </div>
     </div>
