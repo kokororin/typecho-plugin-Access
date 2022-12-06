@@ -93,6 +93,34 @@ class Access_Core
     }
 
     /**
+     * 判断当前 IP 是否在屏蔽 IP(段) 中
+     *
+     * @access private
+     * @return bool
+     */
+    private function isBlockIp($ip): ?bool
+    {
+        $version = Access_Ip::matchIPVersion($ip);
+        if ($version === null) {
+            return false;
+        }
+
+        $lines = explode('\n', $this->config->blockIps);
+        foreach ($lines as $line) {
+            $cidr = explode('#', $line)[0];
+            $cidr = trim($cidr);
+
+            if (!empty($cidr)) {
+                if (Access_Ip::matchCIDR($cidr, $ip)) {
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    /**
      * 记录当前访问（管理员登录不会记录）
      *
      * @access public
@@ -107,6 +135,9 @@ class Access_Core
             $url = $this->request->getServer('REQUEST_URI');
         }
         $ip = $this->request->getIp();
+        if ($this->isBlockIp($ip)) {
+            return;
+        }
         if(!empty($ip)) {
             # 解析ip归属地
             try {

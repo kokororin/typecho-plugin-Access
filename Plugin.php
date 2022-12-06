@@ -75,9 +75,13 @@ class Access_Plugin implements Typecho_Plugin_Interface
                 '0' => '后端',
                 '1' => '前端',
             ), '0', '日志写入类型:', '请选择日志写入类型，如果写入速度较慢可选择前端写入日志。<br/>如果您使用了pjax，请在pjax相关事件中调用 window.Access.track() 方法。');
+        $blockIps = new Typecho_Widget_Helper_Form_Element_Textarea(
+            'blockIps', null, '',
+            'IP 黑名单', '每行一个，不记录来自这些 IP 的访问记录，支持 CIDR 掩码配置，支持 # 行注释');
         $form->addInput($pageSize);
         $form->addInput($isDrop);
         $form->addInput($writeType);
+        $form->addInput($blockIps);
     }
 
     /**
