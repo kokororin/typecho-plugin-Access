@@ -24,6 +24,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $msg = Access_Plugin::install();
         Helper::addPanel(1, self::$panel, _t('Access控制台'), _t('Access插件控制台'), 'subscriber');
         Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
+        Helper::addRoute("access_migration", "/access/migration", "Access_Action", 'migration');
         Helper::addRoute("access_logs", "/access/logs", "Access_Action", 'logs');
         Helper::addRoute('access_statistic_view', '/access/statistic/view', 'Access_Action', 'statistic');
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
@@ -126,50 +127,6 @@ class Access_Plugin implements Typecho_Plugin_Interface
                         }
                     }
                     $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
-                }
-                # 处理旧版本数据
-                if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
-                    $rows = $db->fetchAll($db->select()->from('table.access'));
-                    foreach ($rows as $row) {
-                        $ua = new Access_UA($row['ua']);
-                        $time = Helper::options()->gmtTime + (Helper::options()->timezone - Helper::options()->serverTimezone);
-                        $row['browser_id'       ] = $ua->getBrowserID();
-                        $row['browser_version'  ] = $ua->getBrowserVersion();
-                        $row['os_id'            ] = $ua->getOSID();
-                        $row['os_version'       ] = $ua->getOSVersion();
-                        $row['path'             ] = parse_url($row['url'], PHP_URL_PATH);
-                        $row['query_string'     ] = parse_url($row['url'], PHP_URL_QUERY);
-                        $row['ip'               ] = $row['ip'];
-                        $row['entrypoint'       ] = $row['referer'];
-                        $row['entrypoint_domain'] = $row['referer_domain'];
-                        $row['time'             ] = $row['date'];
-                        $row['robot'            ] = $ua->isRobot() ? 1 : 0;
-                        $row['robot_id'         ] = $ua->getRobotID();
-                        $row['robot_version'    ] = $ua->getRobotVersion();
-                        unset($row['date']);
-                        try {
-                            $db->query($db->insert('table.access_logs')->rows($row));
-                        } catch (Typecho_Db_Exception $e) {
-                            if ($e->getCode() != 23000)
-                                throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
-                        }
-                    }
-                    $db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
-                    $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
-                }
-                if ($db->fetchRow($db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
-                    $rows = $db->fetchAll($db->select()->from('table.access_log'));
-                    foreach ($rows as $row) {
-                        $row['ip'] = long2ip($row['ip']);
-                        try {
-                            $db->query($db->insert('table.access_logs')->rows($row));
-                        } catch (Typecho_Db_Exception $e) {
-                            if ($e->getCode() != 23000)
-                                throw new Typecho_Plugin_Exception(_t('导入旧版数据失败，插件启用失败，错误信息：%s。', $e->getMessage()));
-                        }
-                    }
-                    $db->query("DROP TABLE `{$prefix}access_log`;", Typecho_Db::WRITE);
-                    $msg = _t('成功创建数据表并更新数据，插件启用成功，') . $configLink;
                 }
                 return $msg;
             } catch (Typecho_Db_Exception $e) {
