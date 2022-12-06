@@ -131,6 +131,9 @@ $(document).ready(function () {
             // append row to table body
             $tbody.append($tr);
           });
+          if ($tbody.html() === '') {
+            $tbody.html('<tr><td colspan="7"><h6 class="typecho-list-table-title typecho-access-logs-table-placeholder">暂无数据</h6></td></tr>');
+          }
           $('a[data-action="search-anchor"]').click(onSearchAnchorClick);
 
           // logs pagination

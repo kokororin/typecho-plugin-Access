@@ -117,6 +117,13 @@ select.typecho-access-logs-filter-item__content {
   margin-left: 10px;
 }
 
+.typecho-access-logs-table-placeholder {
+  font-size: 18px;
+  color: #cccccc;
+  font-weight: normal;
+  letter-spacing: 3px;
+}
+
 .typecho-access-logs-pagination-jump {
   float: right;
   display: flex;
