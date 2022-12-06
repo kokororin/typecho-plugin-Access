@@ -126,7 +126,7 @@ $(document).ready(function () {
             $tr.append($td);
             // time
             $td = $('<td />');
-            $td.append($('<span />').text(dayjs(item.time * 1000).format('YYYY-MM-DD hh:mm:ss')));
+            $td.append($('<span />').text(dayjs(item.time * 1000).format('YYYY-MM-DD HH:mm:ss')));
             $tr.append($td);
             // append row to table body
             $tbody.append($tr);
