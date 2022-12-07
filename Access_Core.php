@@ -8,8 +8,6 @@ class Access_Core
     protected $db;
     protected $request;
     protected $response;
-
-    public $ua;
     public $config;
     public $action;
     public $title;
@@ -39,9 +37,6 @@ class Access_Core
         if ($this->config->pageSize == null || $this->config->isDrop == null) {
             throw new Typecho_Plugin_Exception(_t('请先设置插件！'));
         }
-        $this->ua = new Access_UA($this->request->getAgent());
-        $ipdbPath = dirname(__file__).'/lib/ipipfree.ipdb';
-        $this->ipdb = new Access_IpDb($ipdbPath);
         switch ($this->request->get('action')) {
             case 'migration':
                 $this->action = 'migration';
@@ -145,7 +140,8 @@ class Access_Core
         if(!empty($ip)) {
             # 解析ip归属地
             try {
-                $city = $this->ipdb->findInfo($ip, 'CN');
+                $ipdb = new Access_IpDb(dirname(__file__).'/lib/ipipfree.ipdb');
+                $city = $ipdb->findInfo($ip, 'CN');
                 $ip_country = $city->country_name;
                 if($ip_country == '中国') {
                     $ip_province = $city->region_name;
@@ -176,12 +172,13 @@ class Access_Core
             $meta_id = is_numeric($meta_id) ? $meta_id : null;
         }
 
+        $ua = new Access_UA($this->request->getAgent());
         $rows = array(
-            'ua' => $this->ua->getUA(),
-            'browser_id' => $this->ua->getBrowserID(),
-            'browser_version' => $this->ua->getBrowserVersion(),
-            'os_id' => $this->ua->getOSID(),
-            'os_version' => $this->ua->getOSVersion(),
+            'ua' => $ua->getUA(),
+            'browser_id' => $ua->getBrowserID(),
+            'browser_version' => $ua->getBrowserVersion(),
+            'os_id' => $ua->getOSID(),
+            'os_version' => $ua->getOSVersion(),
             'url' => $url,
             'path' => parse_url($url, PHP_URL_PATH),
             'query_string' => parse_url($url, PHP_URL_QUERY),
@@ -196,9 +193,9 @@ class Access_Core
             'time' => $time,
             'content_id' => $content_id,
             'meta_id' => $meta_id,
-            'robot' => $this->ua->isRobot() ? 1 : 0,
-            'robot_id' => $this->ua->getRobotID(),
-            'robot_version' => $this->ua->getRobotVersion(),
+            'robot' => $ua->isRobot() ? 1 : 0,
+            'robot_id' => $ua->getRobotID(),
+            'robot_version' => $ua->getRobotVersion(),
         );
 
         try {
