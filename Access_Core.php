@@ -1,6 +1,6 @@
 <?php
 if (!defined('__ACCESS_PLUGIN_ROOT__')) {
-    throw new Exception('Boostrap file not found');
+    throw new Exception('Bootstrap file not found');
 }
 
 class Access_Core
@@ -149,7 +149,7 @@ class Access_Core
                 } else {
                     $ip_province = $ip_city = NULL;
                 }
-            } catch(Excpetion $e) {
+            } catch(Exception $e) {
                 $ip_country = $ip_province = $ip_city = '未知';
             }
         } else {
