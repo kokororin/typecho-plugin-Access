@@ -1,0 +1,35 @@
+.typecho-access-overview-table-title {
+  margin: 20px 0;
+  opacity: .7;
+  text-align: center;
+  font-size: 14px;
+  line-height: 1.5;
+  font-weight: 600;
+}
+
+.typecho-access-overview-table-wrap {
+  padding: 20px 30px;
+  background-color: #ffffff;
+  color: #000000;
+}
+
+.typecho-access-overview-list-table {
+  width: 100%;
+  border-collapse: collapse;
+  table-layout: fixed;
+  line-height: 1.5;
+}
+
+.typecho-access-overview-list-table th {
+  padding: 10px;
+  border-bottom: 2px solid #f0f0ec;
+  text-align: left;
+  background-color: #ffffff;
+}
+
+.typecho-access-overview-list-table td {
+  padding: 10px;
+  border-top: 1px solid #efefeb;
+  word-break: break-all;
+  background-color: #ffffff;
+}

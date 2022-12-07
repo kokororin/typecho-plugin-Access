@@ -1,7 +1,13 @@
-<div class="col-mb-12 typecho-list">
-  <h4 class="typecho-list-table-title">访问数表格</h4>
-  <div class="typecho-table-wrap" id="tbl-count">
-    <table class="typecho-list-table">
+
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/highcharts.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/exporting.js')?>"></script>
+<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/accessibility.js')?>"></script>
+<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/routes/overview/index.css')?>">
+<script type="text/javascript" defer src="<?php $options->pluginUrl('Access/page/routes/overview/index.js')?>"></script>
+<div class="typecho-access-overview-main bento-col-mb-12">
+  <h4 class="typecho-access-overview-table-title">访问数表格</h4>
+  <div class="typecho-access-overview-table-wrap" id="tbl-count">
+    <table class="typecho-access-overview-list-table">
       <colgroup>
         <col width="10%"/>
         <col width="30%"/>
@@ -39,11 +45,11 @@
     </table>
   </div>
 
-  <div class="col-mb-12 col-4">
-    <h4 class="typecho-list-table-title">来源域名</h4>
+  <div class="bento-col-mb-12 bento-col-4 typecho-access-overview-block">
+    <h4 class="typecho-access-overview-table-title">来源域名</h4>
 
-    <div class="typecho-table-wrap">
-      <table class="typecho-list-table" id="tbl-referer-domain">
+    <div class="typecho-access-overview-table-wrap">
+      <table class="typecho-access-overview-list-table" id="tbl-referer-domain">
         <colgroup>
           <col width="15%"/>
           <col width="15%"/>
@@ -67,11 +73,11 @@
     </div>
   </div>
 
-  <div class="col-mb-12 col-8">
-    <h4 class="typecho-list-table-title">来源页</h4>
+  <div class="bento-col-mb-12 bento-col-8 typecho-access-overview-block">
+    <h4 class="typecho-access-overview-table-title">来源页</h4>
 
-    <div class="typecho-table-wrap">
-      <table class="typecho-list-table" id="tbl-referer-url">
+    <div class="typecho-access-overview-table-wrap">
+      <table class="typecho-access-overview-list-table" id="tbl-referer-url">
         <colgroup>
           <col width="15%"/>
           <col width="15%"/>
@@ -95,39 +101,34 @@
     </div>
   </div>
 
-  <div class="col-mb-12">
-    <h4 class="typecho-list-table-title">文章浏览分析</h4>
-    <div class="typecho-table-wrap" id="pie-article">loading...</div>
+  <div class="bento-col-mb-12">
+    <h4 class="typecho-access-overview-table-title">文章浏览分析</h4>
+    <div class="typecho-access-overview-table-wrap" id="pie-article">loading...</div>
   </div>
 
-  <div class="col-mb-12">
-    <h4 class="typecho-list-table-title">访客地域分析</h4>
-    <div class="typecho-table-wrap">
+  <div class="bento-col-mb-12">
+    <h4 class="typecho-access-overview-table-title">访客地域分析</h4>
+    <div class="typecho-access-overview-table-wrap">
       <ul class="typecho-option-tabs clearfix">
         <li><button id="btn-china" class="btn btn-s primary">国内</button></li>
         <li><button id="btn-inter" class="btn btn-s">国际</button><li>
       </ul>
-      <div class="typecho-table-wrap" id="bar-location">loading...</div>
+      <div class="typecho-access-overview-table-wrap" id="bar-location">loading...</div>
     </div>
   </div>
 
-  <div class="col-mb-12">
-    <h4 class="typecho-list-table-title">今日图表</h4>
-    <div class="typecho-table-wrap" id="chart-today"></div>
+  <div class="bento-col-mb-12">
+    <h4 class="typecho-access-overview-table-title">今日图表</h4>
+    <div class="typecho-access-overview-table-wrap" id="chart-today"></div>
   </div>
 
-  <div class="col-mb-12">
-    <h4 class="typecho-list-table-title">昨日图表</h4>
-    <div class="typecho-table-wrap" id="chart-yesterday"></div>
+  <div class="bento-col-mb-12">
+    <h4 class="typecho-access-overview-table-title">昨日图表</h4>
+    <div class="typecho-access-overview-table-wrap" id="chart-yesterday"></div>
   </div>
 
-  <div class="col-mb-12">
-    <h4 class="typecho-list-table-title">当月图表</h4>
-    <div class="typecho-table-wrap" id="chart-month"></div>
+  <div class="bento-col-mb-12">
+    <h4 class="typecho-access-overview-table-title">当月图表</h4>
+    <div class="typecho-access-overview-table-wrap" id="chart-month"></div>
   </div>
 </div>
-
-<script src="<?php $options->pluginUrl('Access/page/highcharts/js/highcharts.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/exporting.js')?>"></script>
-<script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/accessibility.js')?>"></script>
-<script type="text/javascript" defer src="<?php $options->pluginUrl('Access/page/routes/overview/index.js')?>"></script>
