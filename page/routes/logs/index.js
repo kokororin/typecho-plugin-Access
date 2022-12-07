@@ -40,7 +40,7 @@ $(document).ready(function () {
   function fetchLogs(silent) {
     var startTime = new Date().valueOf();
     if (!silent) {
-      $('.typecho-list')
+      $('.typecho-access-logs-main')
         .loadingModal({ text: '正在获取数据...', backgroundColor: '#292d33' })
         .loadingModal(
           'animation',
@@ -70,31 +70,32 @@ $(document).ready(function () {
           var minDuring = 300;
           var during = new Date().valueOf() - startTime;
           if (during < minDuring) {
-            setTimeout(function() { $('.typecho-list').loadingModal('hide'); }, minDuring - during);
+            setTimeout(function() { $('.typecho-access-logs-main').loadingModal('hide'); }, minDuring - during);
           } else {
-            $('.typecho-list').loadingModal('hide');
+            $('.typecho-access-logs-main').loadingModal('hide');
           }
         }
         if (res.code === 0) {
           // logs list
           var $tbody, $tr, $td;
-          $tbody = $('.typecho-list-table tbody');
+          $tbody = $('.typecho-access-logs-list-table tbody');
           $tbody.html('');
           $.each(res.data.logs, function(index, item) {
             $tr = $('<tr />', { id: item.id, 'data-id': item.id });
             // id
-            $td = $('<td />');
+            $td = $('<td />', { style: 'text-align: center' });
             $td.append($('<input />', {
               type: 'checkbox',
               value: item.id,
               name: 'id[]',
-              class: 'form-check-input',
+              class: 'typecho-access-logs-list-checkbox form-check-input',
               'data-id': item.id,
             }));
             $tr.append($td);
             // url
             $td = $('<td />');
             $td.append($('<a />', {
+              class: '',
               'data-action': 'search-anchor',
               'data-filter': JSON.stringify({ path: item.path }),
             }).text(item.url.replace(/%23/u, '#')));
@@ -103,6 +104,7 @@ $(document).ready(function () {
             $td = $('<td />');
             $td.append($('<a />', {
               title: item.ua,
+              class: '',
               'data-action': 'search-anchor',
               'data-filter': JSON.stringify({ ua: item.ua }),
             }).text(item.display_name));
@@ -110,6 +112,7 @@ $(document).ready(function () {
             // ip
             $td = $('<td />');
             $td.append($('<a />', {
+              class: '',
               'data-action': 'search-anchor',
               'data-filter': JSON.stringify({ ip: item.ip }),
             }).text(item.ip));
@@ -121,6 +124,7 @@ $(document).ready(function () {
             // referer
             $td = $('<td />');
             $td.append($('<a />', {
+              class: '',
               'data-action': 'search-anchor',
               'data-filter': JSON.stringify({ referer: item.referer }),
             }).text(item.referer));
@@ -133,14 +137,16 @@ $(document).ready(function () {
             $tbody.append($tr);
           });
           if ($tbody.html() === '') {
-            $tbody.html('<tr><td colspan="7"><h6 class="typecho-list-table-title typecho-access-logs-table-placeholder">暂无数据</h6></td></tr>');
+            $tbody.html('<tr><td colspan="7"><h6 class="typecho-access-logs-list-table-title typecho-access-logs-table-placeholder">暂无数据</h6></td></tr>');
           }
+          $('.typecho-access-logs-list-checkbox').change(updateSelectAll);
           $('a[data-action="search-anchor"]').click(onSearchAnchorClick);
+          updateSelectAll();
 
           // logs pagination
           setPageNum(res.data.pagination.current);
           var $pagination;
-          $pagination = $('.typecho-pager');
+          $pagination = $('.typecho-access-logs-pagination');
           $pagination.html('');
 
           var startPage, stopPage;
@@ -199,7 +205,7 @@ $(document).ready(function () {
       },
       error: function (xhr, status, error) {
         if (!silent) {
-          $('.typecho-list').loadingModal('hide');
+          $('.typecho-access-logs-main').loadingModal('hide');
         }
         swal({
           icon: "error",
@@ -208,6 +214,17 @@ $(document).ready(function () {
         });
       },
     });
+  }
+
+  function updateSelectAll() {
+    var checked = true;
+    $('.typecho-access-logs-list-checkbox').each(function(_, el) {
+      checked = checked && $(el).prop('checked');
+    });
+    if ($('.typecho-access-logs-list-table-select-all').prop('checked') == checked) {
+      return;
+    }
+    $('.typecho-access-logs-list-table-select-all').prop('checked', checked);
   }
 
   function onSearchAnchorClick(e) {
@@ -273,6 +290,12 @@ $(document).ready(function () {
     setFilters(filters);
   });
 
+  $('.typecho-access-logs-list-table-select-all').click(function() {
+    $(this).parent().parent().parent().parent().parent()
+      .find('input[name="id[]"]')
+      .prop('checked', $(this).prop('checked'));
+  });
+
   $('input[name="page-jump"]').on('keypress', function(e) {
     if (e.which == 13) {
       setPageNum(e.target.value);
@@ -326,7 +349,7 @@ $(document).ready(function () {
               });
               if (filters.ids) {
                 $.each(JSON.parse(filters.ids), function (index, elem) {
-                  $('.typecho-list-table tbody tr[data-id="' + elem + '"]')
+                  $('.typecho-access-logs-list-table tbody tr[data-id="' + elem + '"]')
                     .fadeOut(500)
                     .remove();
                 });
@@ -356,13 +379,16 @@ $(document).ready(function () {
     action(false);
   }
 
-  $('.typecho-access-logs-dropdown-btn').click(function() {
-    $(this).next().css({ display: '', 'min-width': $(this).parent().width() + 'px' });
+  $('.typecho-access-logs-dropdown-toggle').click(function() {
+    $(this).parent().toggleClass('typecho-access-logs-dropdown--active');
+    $(this).next().css({ 'min-width': $(this).parent().width() + 'px' });
   })
 
   $('[data-action="select-delete"]').click(function () {
+    $('.typecho-access-logs-dropdown')
+      .removeClass('typecho-access-logs-dropdown--active');
     var ids = [];
-    $('.typecho-list-table input[type="checkbox"]').each(function (index, elem) {
+    $('.typecho-access-logs-list-checkbox').each(function (index, elem) {
       if (elem.checked) {
         ids.push($(elem).data("id"));
       }

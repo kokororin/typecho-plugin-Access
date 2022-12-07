@@ -6,24 +6,23 @@
 <link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/routes/logs/index.css')?>">
 <script defer src="<?php $options->pluginUrl('Access/page/routes/logs/index.js')?>"></script>
 
-<div class="col-mb-12 typecho-list">
+<div class="bento-col-mb-12 typecho-access-logs-main">
   <div class="typecho-access-logs-controls">
-    <div class="operate">
-      <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
-      <div class="btn-group btn-drop">
-        <button class="btn dropdown-toggle btn-s typecho-access-logs-dropdown-btn" type="button">
+    <div class="typecho-access-logs-controls__left">
+      <div class="typecho-access-logs-dropdown">
+        <button class="typecho-access-logs-btn typecho-access-logs-btn-s typecho-access-logs-dropdown-toggle" type="button">
           <span><?php _e('选中项'); ?></span>
           <div class="typecho-access-logs-dropdown-btn__icon"><i class="i-caret-down"></i></div>
         </button>
-        <ul class="dropdown-menu typecho-access-logs-dropdown">
-          <li><button class="btn-warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
+        <ul class="typecho-access-logs-dropdown-content">
+          <li><button class="typecho-access-logs-btn typecho-access-logs-btn--s typecho-access-logs-btn--warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
         </ul>
       </div>
     </div>
 
-    <div class="search typecho-access-logs-search" role="search">
-      <button data-action="filter-apply" type="button" class="btn btn-s"><?php _e('刷 新'); ?></button>
-      <button data-action="switch-filter" type="button" class="btn btn-s"><?php _e('筛 选'); ?></button>
+    <div class="typecho-access-logs-controls__right typecho-access-logs-search" role="search">
+      <button data-action="filter-apply" type="button" class="typecho-access-logs-btn typecho-access-logs-btn--s"><?php _e('刷 新'); ?></button>
+      <button data-action="switch-filter" type="button" class="typecho-access-logs-btn typecho-access-logs-btn--s"><?php _e('筛 选'); ?></button>
       <div class="typecho-access-logs-filter">
         <div class="typecho-access-logs-filter-item">
           <label class="typecho-access-logs-filter-item__label">匹配方式</label>
@@ -60,19 +59,19 @@
         </div>
         <div class="typecho-access-logs-filter-apply">
           <div>
-            <button class="btn btn-m btn-warn typecho-access-logs-filter-apply__btn" data-action="filter-delete" type="button"><?php _e('批量删除'); ?></button>
+            <button class="typecho-access-logs-btn typecho-access-logs-btn--m typecho-access-logs-btn--warn typecho-access-logs-filter-apply__btn" data-action="filter-delete" type="button"><?php _e('批量删除'); ?></button>
           </div>
           <div>
-            <button class="btn btn-m typecho-access-logs-filter-apply__btn" data-action="filter-reset" type="button"><?php _e('重 置'); ?></button>
-            <button class="btn btn-m primary typecho-access-logs-filter-apply__btn" data-action="filter-apply" type="button"><?php _e('应 用'); ?></button>
+            <button class="typecho-access-logs-btn typecho-access-logs-btn--m typecho-access-logs-filter-apply__btn" data-action="filter-reset" type="button"><?php _e('重 置'); ?></button>
+            <button class="typecho-access-logs-btn typecho-access-logs-btn--m typecho-access-logs-btn--primary typecho-access-logs-filter-apply__btn" data-action="filter-apply" type="button"><?php _e('应 用'); ?></button>
           </div>
         </div>
       </div>
     </div>
   </div>
 
-  <div class="typecho-table-wrap">
-    <table class="typecho-list-table">
+  <div class="typecho-access-logs-table-wrap">
+    <table class="typecho-access-logs-list-table">
       <colgroup>
         <col width="5%"/>
         <col width="28%"/>
@@ -84,7 +83,12 @@
       </colgroup>
       <thead>
         <tr>
-          <th> </th>
+          <th style="text-align: center">
+            <label class="typecho-access-logs-select-all">
+              <i class="sr-only"><?php _e('全选'); ?></i>
+              <input type="checkbox" class="typecho-access-logs-list-table-select-all form-check-input" />
+            </label>
+          </th>
           <th><?php _e('受访地址'); ?></th>
           <th><?php _e('UA'); ?></th>
           <th><?php _e('IP地址'); ?></th>
@@ -95,36 +99,32 @@
       </thead>
       <tbody>
         <tr>
-          <td colspan="7"><h6 class="typecho-list-table-title">loading</h6></td>
+          <td colspan="7"><h6 class="typecho-access-logs-list-table-title">loading</h6></td>
         </tr>
       </tbody>
     </table>
   </div>
 
   <div class="typecho-access-logs-controls">
-    <div class="operate">
-      <label>
-        <i class="sr-only"><?php _e('全选'); ?></i>
-        <input type="checkbox" class="typecho-table-select-all" />
-      </label>
-      <div class="btn-group btn-drop">
-        <button class="btn dropdown-toggle btn-s typecho-access-logs-dropdown-btn" type="button">
+    <div class="typecho-access-logs-controls__left">
+      <div class="typecho-access-logs-dropdown">
+        <button class="typecho-access-logs-btn typecho-access-logs-btn-s typecho-access-logs-dropdown-toggle" type="button">
           <span><?php _e('选中项'); ?></span>
           <div class="typecho-access-logs-dropdown-btn__icon"><i class="i-caret-down"></i></div>
         </button>
-        <ul class="dropdown-menu typecho-access-logs-dropdown">
-          <li><button class="btn-warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
+        <ul class="typecho-access-logs-dropdown-content">
+          <li><button class="typecho-access-logs-btn typecho-access-logs-btn--s typecho-access-logs-btn--warn" data-action="select-delete"><?php _e('删 除'); ?></button></li>
         </ul>
       </div>
     </div>
 
-    <div>
+    <div class="typecho-access-logs-controls__right">
+      <ul class="typecho-access-logs-pagination"></ul>
       <div class="typecho-access-logs-pagination-jump">
         <input class="text-s typecho-access-logs-pagination-jump__number" type="text" name="page-jump" autocomplete="off" />
         <span class="typecho-access-logs-pagination-jump__text">/</span>
         <span class="typecho-access-logs-pagination-jump__total">loading</span>
       </div>
-      <ul class="typecho-pager"></ul>
     </div>
   </div>
 </div>
