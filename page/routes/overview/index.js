@@ -211,6 +211,17 @@ $().ready(function () {
     queue.push(fn);
   }
 
+  function showLoading(selector) {
+    $(selector)
+      .loadingModal({ text: '正在获取数据...', backgroundColor: '#292d33' })
+      .loadingModal('show');
+  }
+
+  function hideLoading(selector) {
+    $(selector)
+      .loadingModal('hide');
+  }
+
   // 今日计数统计数据
   addQueue(function(cb) {
     getStatisticData(
@@ -218,9 +229,9 @@ $().ready(function () {
       { type: "day", time: today.format("%Y-%mm-%dd") },
       function (data) {
         let row = $('#tbl-count tr[name="count-today"] td');
-        row.eq(1).text(data.count.pv),
-          row.eq(2).text(data.count.uv),
-          row.eq(3).text(data.count.ip);
+        row.eq(1).text(data.count.pv);
+        row.eq(2).text(data.count.uv);
+        row.eq(3).text(data.count.ip);
         cb();
       }
     );
@@ -233,9 +244,9 @@ $().ready(function () {
       { type: "day", time: yesterday.format("%Y-%mm-%dd") },
       function (data) {
         let row = $('#tbl-count tr[name="count-yesterday"] td');
-        row.eq(1).text(data.count.pv),
-          row.eq(2).text(data.count.uv),
-          row.eq(3).text(data.count.ip);
+        row.eq(1).text(data.count.pv);
+        row.eq(2).text(data.count.uv);
+        row.eq(3).text(data.count.ip);
         cb();
       }
     );
@@ -245,12 +256,14 @@ $().ready(function () {
   addQueue(function(cb) {
     getStatisticData("count", { type: "total" }, function (data) {
       let row = $('#tbl-count tr[name="count-total"] td');
-      row.eq(1).text(data.count.pv),
-        row.eq(2).text(data.count.uv),
-        row.eq(3).text(data.count.ip);
-        cb();
+      row.eq(1).text(data.count.pv);
+      row.eq(2).text(data.count.uv);
+      row.eq(3).text(data.count.ip);
+      hideLoading('#tbl-count');
+      cb();
     });
   });
+  showLoading('#tbl-count');
 
   // 来源域名统计
   addQueue(function(cb) {
@@ -259,26 +272,32 @@ $().ready(function () {
       { type: "domain", pn: 1, ps: 10 },
       function (data) {
         printRefererTable("tbl-referer-domain", data);
+        hideLoading($('#tbl-referer-domain').parent());
         cb();
       }
     );
   });
+  showLoading($('#tbl-referer-domain').parent());
 
   // 来源页统计
   addQueue(function(cb) {
     getStatisticData("referer", { type: "url", pn: 1, ps: 10 }, function (data) {
       printRefererTable("tbl-referer-url", data);
+      hideLoading($('#tbl-referer-url').parent());
       cb();
     });
   });
+  showLoading($('#tbl-referer-url').parent());
 
   // 文章浏览比例统计
   addQueue(function(cb) {
     getStatisticData("article", { ps: 10 }, function (data) {
       printPie("pie-article", "最受欢迎的文章", data);
+      hideLoading($('#pie-article').parent());
       cb();
     });
   });
+  showLoading($('#pie-article').parent());
 
   // 浏览地域分析图
   addQueue(function(cb) {
@@ -288,21 +307,27 @@ $().ready(function () {
       $("#btn-inter").click(function () {
         $("#btn-inter").addClass("primary");
         $("#btn-china").removeClass("primary");
+        showLoading($('#bar-location').parent());
         getStatisticData("location", { cate: "inter", ps: 10 }, function (data) {
           updateBar(chartBar, "国际访问地域分析", data);
+          hideLoading($('#bar-location').parent());
         });
       });
       // 国内按钮
       $("#btn-china").click(function () {
         $("#btn-china").addClass("primary");
         $("#btn-inter").removeClass("primary");
+        showLoading($('#bar-location').parent());
         getStatisticData("location", { cate: "china", ps: 10 }, function (data) {
           updateBar(chartBar, "国内访问地域分析", data);
+          hideLoading($('#bar-location').parent());
         });
       });
+      hideLoading($('#bar-location').parent());
       cb();
     });
   });
+  showLoading($('#bar-location').parent());
 
   // 当天访问图表
   addQueue(function(cb) {
@@ -311,10 +336,12 @@ $().ready(function () {
       { type: "day", time: today.format("%Y-%mm-%dd") },
       function (data) {
         printChart("chart-today", data.dst + " 统计", data.chart, data.avg);
+        hideLoading($('#chart-today').parent());
         cb();
       }
     );
   });
+  showLoading($('#chart-today').parent());
 
   // 昨天访问图表
   addQueue(function(cb) {
@@ -323,10 +350,12 @@ $().ready(function () {
       { type: "day", time: yesterday.format("%Y-%mm-%dd") },
       function (data) {
         printChart("chart-yesterday", data.dst + " 统计", data.chart, data.avg);
+        hideLoading($('#chart-yesterday').parent());
         cb();
       }
     );
   });
+  showLoading($('#chart-yesterday').parent());
 
   // 当月访问图表
   addQueue(function(cb) {
@@ -335,10 +364,12 @@ $().ready(function () {
       { type: "month", time: today.format("%Y-%mm") },
       function (data) {
         printChart("chart-month", data.dst + " 统计", data.chart, data.avg);
+        hideLoading($('#chart-month').parent());
         cb();
       }
     );
   });
+  showLoading($('#chart-month').parent());
 
   processQueue();
 });

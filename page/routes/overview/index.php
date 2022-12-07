@@ -2,6 +2,8 @@
 <script src="<?php $options->pluginUrl('Access/page/highcharts/js/highcharts.js')?>"></script>
 <script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/exporting.js')?>"></script>
 <script src="<?php $options->pluginUrl('Access/page/highcharts/js/modules/accessibility.js')?>"></script>
+<link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.css')?>">
+<script defer src="<?php $options->pluginUrl('Access/page/components/loadingmodal/index.js')?>"></script>
 <link rel="stylesheet" href="<?php $options->pluginUrl('Access/page/routes/overview/index.css')?>">
 <script type="text/javascript" defer src="<?php $options->pluginUrl('Access/page/routes/overview/index.js')?>"></script>
 <div class="typecho-access-overview-main bento-col-mb-12">

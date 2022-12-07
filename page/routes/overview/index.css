@@ -33,3 +33,11 @@
   word-break: break-all;
   background-color: #ffffff;
 }
+
+#pie-article,
+#bar-location,
+#chart-today,
+#chart-yesterday,
+#chart-month {
+  min-height: 300px;
+}
