@@ -24,6 +24,25 @@ class Access_Migration {
     }
 
     /**
+     * 显示是否存在旧版数据
+     *
+     * @access public
+     * @return bool
+     * @throws Exception
+     */
+    public function exists()
+    {
+        $prefix = $this->db->getPrefix();
+        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+            return true;
+        }
+        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+            return true;
+        }
+        return false;
+    }
+
+    /**
      * 显示旧版本数据数量
      *
      * @access private

@@ -11,6 +11,7 @@ class Access_Core
     public $config;
     public $action;
     public $title;
+    public $hasMigration;
     public $logs = array();
     public $overview = array();
     public $referer = array();
@@ -52,6 +53,7 @@ class Access_Core
                 $this->title = _t('访问概览');
                 break;
         }
+        $this->hasMigration = (new Access_Migration($this->request))->exists();
     }
 
     /**

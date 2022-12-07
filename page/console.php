@@ -5,7 +5,6 @@ include 'menu.php';
 require_once __DIR__ . '/../Access_Bootstrap.php';
 $access = new Access_Core();
 ?>
-<script defer src="<?php $options->pluginUrl('Access/page/console.js')?>"></script>
 <div class="main">
     <div class="body container">
         <div class="typecho-page-title">
@@ -16,7 +15,9 @@ $access = new Access_Core();
                 <ul class="typecho-option-tabs fix-tabs clearfix">
                     <li<?=($access->action == 'overview' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=overview'); ?>"><?php _e('访问概览'); ?></a></li>
                     <li<?=($access->action == 'logs' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=logs'); ?>"><?php _e('访问日志'); ?></a></li>
-                    <li<?=($access->action == 'migration' ? ' class="current"' : '')?> style="display: none" id="migration-tab-li"><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=migration'); ?>"><?php _e('数据迁移'); ?></a></li>
+                    <?php if ($access->hasMigration): ?>
+                    <li<?=($access->action == 'migration' ? ' class="current"' : '')?>><a href="<?php $options->adminUrl('extending.php?panel=' . Access_Plugin::$panel . '&action=migration'); ?>"><?php _e('数据迁移'); ?></a></li>
+                    <?php endif ?>
                     <li><a href="<?php $options->adminUrl('options-plugin.php?config=Access') ?>"><?php _e('插件设置'); ?></a></li>
                 </ul>
             </div>
