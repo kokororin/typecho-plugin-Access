@@ -293,11 +293,11 @@ $().ready(function () {
   addQueue(function(cb) {
     getStatisticData("article", { ps: 10 }, function (data) {
       printPie("pie-article", "最受欢迎的文章", data);
-      hideLoading($('#pie-article').parent());
+      hideLoading('#pie-article');
       cb();
     });
   });
-  showLoading($('#pie-article').parent());
+  showLoading('#pie-article');
 
   // 浏览地域分析图
   addQueue(function(cb) {
@@ -336,12 +336,12 @@ $().ready(function () {
       { type: "day", time: today.format("%Y-%mm-%dd") },
       function (data) {
         printChart("chart-today", data.dst + " 统计", data.chart, data.avg);
-        hideLoading($('#chart-today').parent());
+        hideLoading('#chart-today');
         cb();
       }
     );
   });
-  showLoading($('#chart-today').parent());
+  showLoading('#chart-today');
 
   // 昨天访问图表
   addQueue(function(cb) {
@@ -350,12 +350,12 @@ $().ready(function () {
       { type: "day", time: yesterday.format("%Y-%mm-%dd") },
       function (data) {
         printChart("chart-yesterday", data.dst + " 统计", data.chart, data.avg);
-        hideLoading($('#chart-yesterday').parent());
+        hideLoading('#chart-yesterday');
         cb();
       }
     );
   });
-  showLoading($('#chart-yesterday').parent());
+  showLoading('#chart-yesterday');
 
   // 当月访问图表
   addQueue(function(cb) {
@@ -364,12 +364,12 @@ $().ready(function () {
       { type: "month", time: today.format("%Y-%mm") },
       function (data) {
         printChart("chart-month", data.dst + " 统计", data.chart, data.avg);
-        hideLoading($('#chart-month').parent());
+        hideLoading('#chart-month');
         cb();
       }
     );
   });
-  showLoading($('#chart-month').parent());
+  showLoading('#chart-month');
 
   processQueue();
 });
