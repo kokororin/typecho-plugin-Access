@@ -7,7 +7,7 @@
 <script defer src="<?php $options->pluginUrl('Access/page/routes/logs/index.js')?>"></script>
 
 <div class="col-mb-12 typecho-list">
-  <div class="typecho-list-operate clearfix">
+  <div class="typecho-access-logs-controls">
     <div class="operate">
       <label><i class="sr-only"><?php _e('全选'); ?></i><input type="checkbox" class="typecho-table-select-all" /></label>
       <div class="btn-group btn-drop">
@@ -101,7 +101,7 @@
     </table>
   </div>
 
-  <div class="typecho-list-operate clearfix">
+  <div class="typecho-access-logs-controls">
     <div class="operate">
       <label>
         <i class="sr-only"><?php _e('全选'); ?></i>
@@ -118,11 +118,13 @@
       </div>
     </div>
 
-    <div class="typecho-access-logs-pagination-jump">
-      <input class="text-s typecho-access-logs-pagination-jump__number" type="text" name="page-jump" autocomplete="off" />
-      <span class="typecho-access-logs-pagination-jump__text">/</span>
-      <span class="typecho-access-logs-pagination-jump__total">loading</span>
+    <div>
+      <div class="typecho-access-logs-pagination-jump">
+        <input class="text-s typecho-access-logs-pagination-jump__number" type="text" name="page-jump" autocomplete="off" />
+        <span class="typecho-access-logs-pagination-jump__text">/</span>
+        <span class="typecho-access-logs-pagination-jump__total">loading</span>
+      </div>
+      <ul class="typecho-pager"></ul>
     </div>
-    <ul class="typecho-pager"></ul>
   </div>
 </div>

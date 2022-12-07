@@ -88,6 +88,7 @@ $(document).ready(function () {
               type: 'checkbox',
               value: item.id,
               name: 'id[]',
+              class: 'form-check-input',
               'data-id': item.id,
             }));
             $tr.append($td);
@@ -356,7 +357,7 @@ $(document).ready(function () {
   }
 
   $('.typecho-access-logs-dropdown-btn').click(function() {
-    $(this).next().css({ display: '' });
+    $(this).next().css({ display: '', 'min-width': $(this).parent().width() + 'px' });
   })
 
   $('[data-action="select-delete"]').click(function () {

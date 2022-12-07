@@ -2,6 +2,12 @@ a[data-action="search-anchor"] {
   cursor: pointer;
 }
 
+.typecho-access-logs-controls {
+  display: flex;
+  justify-content: space-between;
+  margin: 10px 0;
+}
+
 .typecho-access-logs-search {
   position: relative;
 }
@@ -25,7 +31,7 @@ a[data-action="search-anchor"] {
   transform: translateY(20%);
 }
 
-button.active > .typecho-access-logs-dropdown-btn__icon {
+.active > .dropdown-toggle + .typecho-access-logs-dropdown-btn__icon {
   transform: rotateZ(180deg);
 }
 
@@ -33,10 +39,11 @@ button.active > .typecho-access-logs-dropdown-btn__icon {
   margin-top: 1px;
   min-width: 73px;
   border: none;
+  padding: 0 !important;
   display: block;
   opacity: 0;
   pointer-events: none;
-  transition: opacity ease-out .3s;
+  transition: opacity ease-out .3s !important;
 }
 
 .typecho-access-logs-dropdown > li {
@@ -50,7 +57,7 @@ button.active > .typecho-access-logs-dropdown-btn__icon {
   width: 100%;
 }
 
-button.active + .typecho-access-logs-dropdown {
+.active > .dropdown-toggle + .typecho-access-logs-dropdown {
   opacity: 1;
   pointer-events: all;
 }
@@ -66,7 +73,7 @@ button.active + .typecho-access-logs-dropdown {
   width: 400px;
   pointer-events: none;
   opacity: 0;
-  transition: ease-in-out opacity 0.3s;
+  transition: opacity ease-in-out 0.3s;
 }
 
 .typecho-access-logs-filter--visible {
