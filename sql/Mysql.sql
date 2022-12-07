@@ -27,6 +27,7 @@ CREATE TABLE `typecho_access_logs` (
   KEY `idx_path`              (`path`             ),
   KEY `idx_ua`                (`ua`               ),
   KEY `idx_ip_ua`             (`ip`,`ua`          ),
+  KEY `idx_ip_province`       (`ip_province`      ),
   KEY `idx_robot`             (`robot`, `time`    ),
   KEY `idx_os_id`             (`os_id`            ),
   KEY `idx_robot_id`          (`robot_id`         ),

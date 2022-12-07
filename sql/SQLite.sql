@@ -27,6 +27,7 @@ CREATE INDEX `typecho_access_log_time`              ON `typecho_access_log` (`ti
 CREATE INDEX `typecho_access_log_path`              ON `typecho_access_log` (`path`             );
 CREATE INDEX `typecho_access_log_ua`                ON `typecho_access_log` (`ua`               );
 CREATE INDEX `typecho_access_log_ip_ua`             ON `typecho_access_log` (`ip`, `ua`         );
+CREATE INDEX `typecho_access_log_ip_province`       ON `typecho_access_log` (`ip_province`      );
 CREATE INDEX `typecho_access_log_robot`             ON `typecho_access_log` (`robot`, `time`    );
 CREATE INDEX `typecho_access_log_os_id`             ON `typecho_access_log` (`os_id`            );
 CREATE INDEX `typecho_access_log_robot_id`          ON `typecho_access_log` (`robot_id`         );
