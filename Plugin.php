@@ -26,7 +26,7 @@ class Access_Plugin implements Typecho_Plugin_Interface
         Helper::addRoute("access_track_gif", "/access/log/track.gif", "Access_Action", 'writeLogs');
         Helper::addRoute("access_migration", "/access/migration", "Access_Action", 'migration');
         Helper::addRoute("access_logs", "/access/logs", "Access_Action", 'logs');
-        Helper::addRoute('access_statistic_view', '/access/statistic/view', 'Access_Action', 'statistic');
+        Helper::addRoute('access_statistic', '/access/statistic', 'Access_Action', 'statistic');
         Typecho_Plugin::factory('Widget_Archive')->beforeRender = array('Access_Plugin', 'backend');
         Typecho_Plugin::factory('Widget_Archive')->footer = array('Access_Plugin', 'frontend');
         Typecho_Plugin::factory('admin/footer.php')->end = array('Access_Plugin', 'adminFooter');

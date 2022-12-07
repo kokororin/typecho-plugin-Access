@@ -150,7 +150,7 @@ printRefererTable = function (target, data) {
 // 拉取统计数据
 getStatisticData = function (rpc, params = null, callback) {
   $.ajax({
-    url: "/access/statistic/view",
+    url: "/access/statistic",
     method: "get",
     dataType: "json",
     data: { rpc: rpc, ...params },
