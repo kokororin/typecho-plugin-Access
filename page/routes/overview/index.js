@@ -199,97 +199,146 @@ $().ready(function () {
   const yesterday = new Date(today);
   yesterday.setDate(yesterday.getDate() - 1);
 
+  var queue = [];
+  function processQueue() {
+    var fn = queue.shift();
+    if (fn) {
+      fn(processQueue);
+    }
+  }
+
+  function addQueue(fn) {
+    queue.push(fn);
+  }
+
   // 今日计数统计数据
-  getStatisticData(
-    "count",
-    { type: "day", time: today.format("%Y-%mm-%dd") },
-    function (data) {
-      let row = $('#tbl-count tr[name="count-today"] td');
-      row.eq(1).text(data.count.pv),
-        row.eq(2).text(data.count.uv),
-        row.eq(3).text(data.count.ip);
-    }
-  );
+  addQueue(function(cb) {
+    getStatisticData(
+      "count",
+      { type: "day", time: today.format("%Y-%mm-%dd") },
+      function (data) {
+        let row = $('#tbl-count tr[name="count-today"] td');
+        row.eq(1).text(data.count.pv),
+          row.eq(2).text(data.count.uv),
+          row.eq(3).text(data.count.ip);
+        cb();
+      }
+    );
+  });
+
   // 昨日计数统计数据
-  getStatisticData(
-    "count",
-    { type: "day", time: yesterday.format("%Y-%mm-%dd") },
-    function (data) {
-      let row = $('#tbl-count tr[name="count-yesterday"] td');
+  addQueue(function(cb) {
+    getStatisticData(
+      "count",
+      { type: "day", time: yesterday.format("%Y-%mm-%dd") },
+      function (data) {
+        let row = $('#tbl-count tr[name="count-yesterday"] td');
+        row.eq(1).text(data.count.pv),
+          row.eq(2).text(data.count.uv),
+          row.eq(3).text(data.count.ip);
+        cb();
+      }
+    );
+  });
+
+  // 总计数统计数据
+  addQueue(function(cb) {
+    getStatisticData("count", { type: "total" }, function (data) {
+      let row = $('#tbl-count tr[name="count-total"] td');
       row.eq(1).text(data.count.pv),
         row.eq(2).text(data.count.uv),
         row.eq(3).text(data.count.ip);
-    }
-  );
-  // 总计数统计数据
-  getStatisticData("count", { type: "total" }, function (data) {
-    let row = $('#tbl-count tr[name="count-total"] td');
-    row.eq(1).text(data.count.pv),
-      row.eq(2).text(data.count.uv),
-      row.eq(3).text(data.count.ip);
+        cb();
+    });
   });
 
   // 来源域名统计
-  getStatisticData(
-    "referer",
-    { type: "domain", pn: 1, ps: 10 },
-    function (data) {
-      printRefererTable("tbl-referer-domain", data);
-    }
-  );
+  addQueue(function(cb) {
+    getStatisticData(
+      "referer",
+      { type: "domain", pn: 1, ps: 10 },
+      function (data) {
+        printRefererTable("tbl-referer-domain", data);
+        cb();
+      }
+    );
+  });
+
   // 来源页统计
-  getStatisticData("referer", { type: "url", pn: 1, ps: 10 }, function (data) {
-    printRefererTable("tbl-referer-url", data);
+  addQueue(function(cb) {
+    getStatisticData("referer", { type: "url", pn: 1, ps: 10 }, function (data) {
+      printRefererTable("tbl-referer-url", data);
+      cb();
+    });
   });
 
   // 文章浏览比例统计
-  getStatisticData("article", { ps: 10 }, function (data) {
-    printPie("pie-article", "最受欢迎的文章", data);
+  addQueue(function(cb) {
+    getStatisticData("article", { ps: 10 }, function (data) {
+      printPie("pie-article", "最受欢迎的文章", data);
+      cb();
+    });
   });
 
   // 浏览地域分析图
-  getStatisticData("location", { cate: "china", ps: 10 }, function (data) {
-    const chartBar = printBar("bar-location", "国内访问地域分析", data);
-    // 国际按钮
-    $("#btn-inter").click(function () {
-      $("#btn-inter").addClass("primary");
-      $("#btn-china").removeClass("primary");
-      getStatisticData("location", { cate: "inter", ps: 10 }, function (data) {
-        updateBar(chartBar, "国际访问地域分析", data);
+  addQueue(function(cb) {
+    getStatisticData("location", { cate: "china", ps: 10 }, function (data) {
+      const chartBar = printBar("bar-location", "国内访问地域分析", data);
+      // 国际按钮
+      $("#btn-inter").click(function () {
+        $("#btn-inter").addClass("primary");
+        $("#btn-china").removeClass("primary");
+        getStatisticData("location", { cate: "inter", ps: 10 }, function (data) {
+          updateBar(chartBar, "国际访问地域分析", data);
+        });
       });
-    });
-    // 国内按钮
-    $("#btn-china").click(function () {
-      $("#btn-china").addClass("primary");
-      $("#btn-inter").removeClass("primary");
-      getStatisticData("location", { cate: "china", ps: 10 }, function (data) {
-        updateBar(chartBar, "国内访问地域分析", data);
+      // 国内按钮
+      $("#btn-china").click(function () {
+        $("#btn-china").addClass("primary");
+        $("#btn-inter").removeClass("primary");
+        getStatisticData("location", { cate: "china", ps: 10 }, function (data) {
+          updateBar(chartBar, "国内访问地域分析", data);
+        });
       });
+      cb();
     });
   });
 
   // 当天访问图表
-  getStatisticData(
-    "chart",
-    { type: "day", time: today.format("%Y-%mm-%dd") },
-    function (data) {
-      printChart("chart-today", data.dst + " 统计", data.chart, data.avg);
-    }
-  );
+  addQueue(function(cb) {
+    getStatisticData(
+      "chart",
+      { type: "day", time: today.format("%Y-%mm-%dd") },
+      function (data) {
+        printChart("chart-today", data.dst + " 统计", data.chart, data.avg);
+        cb();
+      }
+    );
+  });
+
   // 昨天访问图表
-  getStatisticData(
-    "chart",
-    { type: "day", time: yesterday.format("%Y-%mm-%dd") },
-    function (data) {
-      printChart("chart-yesterday", data.dst + " 统计", data.chart, data.avg);
-    }
-  );
+  addQueue(function(cb) {
+    getStatisticData(
+      "chart",
+      { type: "day", time: yesterday.format("%Y-%mm-%dd") },
+      function (data) {
+        printChart("chart-yesterday", data.dst + " 统计", data.chart, data.avg);
+        cb();
+      }
+    );
+  });
+
   // 当月访问图表
-  getStatisticData(
-    "chart",
-    { type: "month", time: today.format("%Y-%mm") },
-    function (data) {
-      printChart("chart-month", data.dst + " 统计", data.chart, data.avg);
-    }
-  );
+  addQueue(function(cb) {
+    getStatisticData(
+      "chart",
+      { type: "month", time: today.format("%Y-%mm") },
+      function (data) {
+        printChart("chart-month", data.dst + " 统计", data.chart, data.avg);
+        cb();
+      }
+    );
+  });
+
+  processQueue();
 });
