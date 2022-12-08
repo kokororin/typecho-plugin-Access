@@ -23,6 +23,7 @@ $access = new Access_Core();
           <li><a href="<?php $options->adminUrl('options-plugin.php?config=Access') ?>"><?php _e('插件设置'); ?></a></li>
         </ul>
       </div>
+      <div class="bento-clearfix"></div>
       <?php include("routes/{$access->action}/index.php") ?>
     </div>
   </div>
