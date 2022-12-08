@@ -5,3 +5,34 @@
 .typecho-access-migration-summary {
   margin: 20px 0;
 }
+
+.typecho-access-migration-btn {
+  border: none;
+  background-color: #b94a48;
+  cursor: pointer;
+  border-radius: 2px;
+  color: #fff;
+  display: inline-block;
+  padding: 0 12px;
+  height: 32px;
+  vertical-align: middle;
+  zoom: 1;
+}
+
+.typecho-access-migration-btn:focus {
+  outline: 0;
+}
+
+.typecho-access-migration-btn:hover {
+  transition-duration: 0.4s;
+  background-color: #a4403f;
+}
+
+.typecho-access-migration-btn:active {
+  background-color: #9c3e3c;
+}
+
+.typecho-access-migration-btn:disabled {
+  background-color: #c1605e;
+  cursor: default;
+}
