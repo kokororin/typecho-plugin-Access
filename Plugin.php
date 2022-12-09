@@ -127,6 +127,8 @@ class Access_Plugin implements Typecho_Plugin_Interface
                         }
                     }
                     $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
+                } else {
+                    $msg = _t('数据表已存在，插件启用成功，') . $configLink;
                 }
                 return $msg;
             } catch (Typecho_Db_Exception $e) {
