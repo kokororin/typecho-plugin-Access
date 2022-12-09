@@ -14,6 +14,11 @@ class Access_Logs {
         'cids' => 'GET',
     ];
 
+    private static $presetWheres = [
+        'robot' => '`ip` IN ( SELECT DISTINCT `ip` FROM `typecho_access_logs` WHERE `url` = "/robots.txt" )',
+        'script' => '`ip` IN ( SELECT DISTINCT `ip` FROM `typecho_access_logs` WHERE `url` LIKE "%/wp-%" OR `url` LIKE "/.%" OR `url` LIKE "%../%" )',
+    ];
+
     private $config;
     private $db;
     private $request;
@@ -28,16 +33,18 @@ class Access_Logs {
      * 创建过滤器对应的数据库查询语句
      *
      * @access private
-     * @return void
+     * @return string
      */
     private function filterQueryBuilder($query, $filters, $fuzzy)
     {
+        $prefix = $this->db->getPrefix();
         $ids = array_key_exists('ids', $filters) ? $filters['ids'] : '';
         $ip = array_key_exists('ip', $filters) ? $filters['ip'] : '';
         $ua = array_key_exists('ua', $filters) ? $filters['ua'] : '';
         $cid = array_key_exists('cid', $filters) ? $filters['cid'] : '';
         $path = array_key_exists('path', $filters) ? $filters['path'] : '';
         $robot = array_key_exists('robot', $filters) ? $filters['robot'] : '';
+        $preset = array_key_exists('preset', $filters) ? $filters['preset'] : '';
         $compare = $fuzzy === '1' ? ' LIKE ?' : ' = ?';
         $empty = $fuzzy ? '%' : '';
         if (!empty($ids) && count($ids) > 0) {
@@ -58,6 +65,20 @@ class Access_Logs {
         if ($robot !== '') {
             $query->where('robot = ?', $robot);
         }
+        $hasPreset = array_key_exists($preset, Access_Logs::$presetWheres);
+        if ($hasPreset) {
+            $query->where("\"STATIC_PLACEHOLDER_{$preset}\" = \"STATIC_PLACEHOLDER_{$preset}\"");
+        }
+
+        $sql = $query->prepare($query);
+        if ($hasPreset) {
+            foreach (Access_Logs::$presetWheres as $name => $where) {
+                $placeholder = "\"STATIC_PLACEHOLDER_{$name}\" = \"STATIC_PLACEHOLDER_{$name}\"";
+                $where = str_replace('typecho_', $prefix, Access_Logs::$presetWheres[$name]);
+                $sql = str_replace($placeholder, $where, $sql);
+            }
+        }
+        return $sql;
     }
 
     /**
@@ -76,6 +97,7 @@ class Access_Logs {
             'cid' => $this->request->get('cid', ''),
             'path' => $this->request->get('path', ''),
             'robot' => $this->request->get('robot', ''),
+            'preset' => $this->request->get('preset', ''),
         );
         $fuzzy = $this->request->get('fuzzy', '');
         $pageSize = intval($this->config->pageSize);
@@ -87,8 +109,8 @@ class Access_Logs {
             ->offset((max(intval($pageNum), 1) - 1) * $pageSize)
             ->limit($pageSize);
 
-        $this->filterQueryBuilder($dataQuery, $filters, $fuzzy);
-        $this->filterQueryBuilder($counterQuery, $filters, $fuzzy);
+        $dataQuery = $this->filterQueryBuilder($dataQuery, $filters, $fuzzy);
+        $counterQuery = $this->filterQueryBuilder($counterQuery, $filters, $fuzzy);
 
         $resp['count'] = $this->db->fetchAll($counterQuery)[0]['count'];
         $resp['pagination'] = [
@@ -143,25 +165,27 @@ class Access_Logs {
         $cid = $this->request->get('cid', '');
         $path = $this->request->get('path', '');
         $robot = $this->request->get('robot', '');
+        $preset = $this->request->get('preset', '');
         $force = $this->request->get('force', '');
         if ($ids) {
             $ids = Json::decode($ids, true);
             if (!is_array($ids)) {
                 throw new Exception('Bad Request', 400);
             }
-            $this->filterQueryBuilder($counterQuery, ['ids' => $ids], false);
-            $this->filterQueryBuilder($operatorQuery, ['ids' => $ids], false);
-        } else if ($ip || $ua || $cid || $path || $robot) {
+            $counterQuery = $this->filterQueryBuilder($counterQuery, ['ids' => $ids], false);
+            $operatorQuery = $this->filterQueryBuilder($operatorQuery, ['ids' => $ids], false);
+        } else if ($ip || $ua || $cid || $path || $robot || $preset) {
             $filters = array(
                 'ip' => $ip,
                 'ua' => $ua,
                 'cid' => $cid,
                 'path' => $path,
                 'robot' => $robot,
+                'preset' => $preset,
             );
             $fuzzy = $this->request->get('fuzzy', '');
-            $this->filterQueryBuilder($counterQuery, $filters, $fuzzy);
-            $this->filterQueryBuilder($operatorQuery, $filters, $fuzzy);
+            $counterQuery = $this->filterQueryBuilder($counterQuery, $filters, $fuzzy);
+            $operatorQuery = $this->filterQueryBuilder($operatorQuery, $filters, $fuzzy);
         } else {
             throw new Exception('Bad Request', 400);
         }

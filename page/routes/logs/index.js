@@ -17,6 +17,7 @@ $(document).ready(function () {
       cid: $('[name="filter-cid"]').val(),
       path: $('[name="filter-path"]').val(),
       robot: $('[name="filter-robot"]').val(),
+      preset: $('[name="filter-preset"]').val(),
     };
   }
 
@@ -27,6 +28,7 @@ $(document).ready(function () {
     $('[name="filter-cid"]').val('cid' in filters ? filters.cid : '');
     $('[name="filter-path"]').val('path' in filters ? filters.path : '');
     $('[name="filter-robot"]').val('robot' in filters ? filters.robot : '');
+    $('[name="filter-preset"]').val('preset' in filters ? filters.preset : '');
   }
 
   function hideFilters() {

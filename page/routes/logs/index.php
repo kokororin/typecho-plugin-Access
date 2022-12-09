@@ -57,6 +57,14 @@
             <option value=""><?php _e('所有'); ?></option>
           </select>
         </div>
+        <div class="typecho-access-logs-filter-item">
+          <label class="typecho-access-logs-filter-item__label">智能判断</label>
+          <select class="typecho-access-logs-filter-item__content" name="filter-preset">
+            <option value=""><?php _e('无'); ?></option>
+            <option value="robot"><?php _e('疑似爬虫'); ?></option>
+            <option value="script"><?php _e('疑似脚本'); ?></option>
+          </select>
+        </div>
         <div class="typecho-access-logs-filter-apply">
           <div>
             <button class="typecho-access-logs-btn typecho-access-logs-btn--m typecho-access-logs-btn--warn typecho-access-logs-filter-apply__btn" data-action="filter-delete" type="button"><?php _e('批量删除'); ?></button>
