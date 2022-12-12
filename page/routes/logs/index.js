@@ -108,20 +108,25 @@ $(document).ready(function () {
                   }).text(item.url.replace(/%23/u, '#'))
                 )
                 .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
-                    'data-action': 'search-anchor',
-                    'data-filter': JSON.stringify({ path: item.path }),
+                  $('<div />', {
+                    class: 'typecho-access-logs-list-cell__tooltip typecho-access-logs-list-cell__tooltip--hidden',
                     'data-auto-hide': 'yes',
-                  }).hide()
-                )
-                .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
-                    'data-action': 'quick-filter-delete',
-                    'data-filter': JSON.stringify({ url: item.url }),
-                    'data-auto-hide': 'yes',
-                  }).hide()
+                  })
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-search',
+                        'data-action': 'search-anchor',
+                        'data-filter': JSON.stringify({ path: item.path }),
+                      })
+                    )
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-delete',
+                        'data-action': 'quick-filter-delete',
+                        'data-filter': JSON.stringify({ url: item.url }),
+                        'data-auto-hide': 'yes',
+                      })
+                    )
                 )
             );
             $tr.append($td);
@@ -138,20 +143,26 @@ $(document).ready(function () {
                   }).text(item.display_name)
                 )
                 .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
-                    'data-action': 'search-anchor',
-                    'data-filter': JSON.stringify({ ua: item.ua }),
+                  $('<div />', {
+                    class: 'typecho-access-logs-list-cell__tooltip typecho-access-logs-list-cell__tooltip--hidden',
                     'data-auto-hide': 'yes',
-                  }).hide()
-                )
-                .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
-                    'data-action': 'quick-filter-delete',
-                    'data-filter': JSON.stringify({ ua: item.ua }),
-                    'data-auto-hide': 'yes',
-                  }).hide()
+                  })
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-search',
+                        'data-action': 'search-anchor',
+                        'data-filter': JSON.stringify({ ua: item.ua }),
+                        'data-auto-hide': 'yes',
+                      })
+                    )
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-delete',
+                        'data-action': 'quick-filter-delete',
+                        'data-filter': JSON.stringify({ ua: item.ua }),
+                        'data-auto-hide': 'yes',
+                      })
+                    )
                 )
             );
             $tr.append($td);
@@ -167,20 +178,26 @@ $(document).ready(function () {
                   }).text(item.ip)
                 )
                 .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
-                    'data-action': 'search-anchor',
-                    'data-filter': JSON.stringify({ ip: item.ip }),
+                  $('<div />', {
+                    class: 'typecho-access-logs-list-cell__tooltip typecho-access-logs-list-cell__tooltip--hidden',
                     'data-auto-hide': 'yes',
-                  }).hide()
-                )
-                .append(
-                  $('<span />', {
-                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
-                    'data-action': 'quick-filter-delete',
-                    'data-filter': JSON.stringify({ ip: item.ip }),
-                    'data-auto-hide': 'yes',
-                  }).hide()
+                  })
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-search',
+                        'data-action': 'search-anchor',
+                        'data-filter': JSON.stringify({ ip: item.ip }),
+                        'data-auto-hide': 'yes',
+                      })
+                    )
+                    .append(
+                      $('<span />', {
+                        class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell__tooltip-icon typecho-access-logs-list-cell-item-delete',
+                        'data-action': 'quick-filter-delete',
+                        'data-filter': JSON.stringify({ ip: item.ip }),
+                        'data-auto-hide': 'yes',
+                      })
+                    )
                 )
             );
             $tr.append($td);
@@ -206,10 +223,10 @@ $(document).ready(function () {
           $('[data-action="search-anchor"]').click(onSearchAnchorClick);
           $('.typecho-access-logs-list-cell').hover(
             function() {
-              $(this).find('[data-auto-hide="yes"]').show();
+              $(this).find('[data-auto-hide="yes"]').removeClass('typecho-access-logs-list-cell__tooltip--hidden');
             },
             function() {
-              $(this).find('[data-auto-hide="yes"]').hide();
+              $(this).find('[data-auto-hide="yes"]').addClass('typecho-access-logs-list-cell__tooltip--hidden');
             }
           );
           $('[data-action="quick-filter-delete"]').click(function(e) {

@@ -243,13 +243,30 @@ select.typecho-access-logs-filter-item__content {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  position: relative;
 }
 
-.typecho-access-logs-list-cell-item:first-child {
-  margin-right: 5px;
+.typecho-access-logs-list-cell__tooltip {
+  position: absolute;
+  bottom: 100%;
+  display: flex;
+  background-color: #f5f7fb;
+  padding: 5px 8px;
+  transition: all ease-in-out .1s;
 }
 
-.typecho-access-logs-list-cell-item-icon {
+.typecho-access-logs-list-cell__tooltip--hidden {
+  opacity: 0;
+  pointer-events: none;
+  transition: all ease-in-out .3s;
+}
+
+.typecho-access-logs-list-cell__tooltip > *:not(:last-child) {
+  margin-right: 4px;
+}
+
+.typecho-access-logs-list-cell__tooltip-icon {
+  display: inline-block;
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -259,7 +276,7 @@ select.typecho-access-logs-filter-item__content {
   background-repeat: no-repeat;
 }
 
-.typecho-access-logs-list-cell-item-icon:hover {
+.typecho-access-logs-list-cell__tooltip-icon:hover {
   opacity: 1;
 }
 
