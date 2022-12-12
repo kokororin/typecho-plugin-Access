@@ -42,6 +42,7 @@ class Access_Logs {
         $ip = array_key_exists('ip', $filters) ? $filters['ip'] : '';
         $ua = array_key_exists('ua', $filters) ? $filters['ua'] : '';
         $cid = array_key_exists('cid', $filters) ? $filters['cid'] : '';
+        $url = array_key_exists('url', $filters) ? $filters['url'] : '';
         $path = array_key_exists('path', $filters) ? $filters['path'] : '';
         $robot = array_key_exists('robot', $filters) ? $filters['robot'] : '';
         $preset = array_key_exists('preset', $filters) ? $filters['preset'] : '';
@@ -58,6 +59,9 @@ class Access_Logs {
         }
         if ($cid !== '') {
             $query->where('content_id' . $compare, $cid);
+        }
+        if ($url !== $empty) {
+            $query->where('url' . $compare, $url);
         }
         if ($path !== $empty) {
             $query->where('path' . $compare, $path);
@@ -95,6 +99,7 @@ class Access_Logs {
             'ip' => $this->request->get('ip', ''),
             'ua' => $this->request->get('ua', ''),
             'cid' => $this->request->get('cid', ''),
+            'url' => $this->request->get('url', ''),
             'path' => $this->request->get('path', ''),
             'robot' => $this->request->get('robot', ''),
             'preset' => $this->request->get('preset', ''),
@@ -163,6 +168,7 @@ class Access_Logs {
         $ip = $this->request->get('ip', '');
         $ua = $this->request->get('ua', '');
         $cid = $this->request->get('cid', '');
+        $url = $this->request->get('url', '');
         $path = $this->request->get('path', '');
         $robot = $this->request->get('robot', '');
         $preset = $this->request->get('preset', '');
@@ -174,11 +180,12 @@ class Access_Logs {
             }
             $counterQuery = $this->filterQueryBuilder($counterQuery, ['ids' => $ids], false);
             $operatorQuery = $this->filterQueryBuilder($operatorQuery, ['ids' => $ids], false);
-        } else if ($ip || $ua || $cid || $path || $robot || $preset) {
+        } else if ($ip || $ua || $cid || $url || $path || $robot || $preset) {
             $filters = array(
                 'ip' => $ip,
                 'ua' => $ua,
                 'cid' => $cid,
+                'url' => $url,
                 'path' => $path,
                 'robot' => $robot,
                 'preset' => $preset,

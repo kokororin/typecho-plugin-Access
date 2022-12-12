@@ -15,6 +15,7 @@ $(document).ready(function () {
       ua: $('[name="filter-ua"]').val(),
       ip: $('[name="filter-ip"]').val(),
       cid: $('[name="filter-cid"]').val(),
+      url: $('[name="filter-url"]').val(),
       path: $('[name="filter-path"]').val(),
       robot: $('[name="filter-robot"]').val(),
       preset: $('[name="filter-preset"]').val(),
@@ -26,6 +27,7 @@ $(document).ready(function () {
     $('[name="filter-ua"]').val('ua' in filters ? filters.ua : '');
     $('[name="filter-ip"]').val('ip' in filters ? filters.ip : '');
     $('[name="filter-cid"]').val('cid' in filters ? filters.cid : '');
+    $('[name="filter-url"]').val('url' in filters ? filters.url : '');
     $('[name="filter-path"]').val('path' in filters ? filters.path : '');
     $('[name="filter-robot"]').val('robot' in filters ? filters.robot : '');
     $('[name="filter-preset"]').val('preset' in filters ? filters.preset : '');
@@ -96,28 +98,91 @@ $(document).ready(function () {
             $tr.append($td);
             // url
             $td = $('<td />');
-            $td.append($('<a />', {
-              class: '',
-              'data-action': 'search-anchor',
-              'data-filter': JSON.stringify({ path: item.path }),
-            }).text(item.url.replace(/%23/u, '#')));
+            $td.append(
+              $('<div />', { class: 'typecho-access-logs-list-cell' })
+                .append(
+                  $('<a />', {
+                    class: 'typecho-access-logs-list-cell-item',
+                    href: item.url,
+                    target: '__blank',
+                  }).text(item.url.replace(/%23/u, '#'))
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
+                    'data-action': 'search-anchor',
+                    'data-filter': JSON.stringify({ path: item.path }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
+                    'data-action': 'quick-filter-delete',
+                    'data-filter': JSON.stringify({ url: item.url }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+            );
             $tr.append($td);
             // ua
             $td = $('<td />');
-            $td.append($('<a />', {
-              title: item.ua,
-              class: '',
-              'data-action': 'search-anchor',
-              'data-filter': JSON.stringify({ ua: item.ua }),
-            }).text(item.display_name));
+            $td.append(
+              $('<div />', { class: 'typecho-access-logs-list-cell' })
+                .append(
+                  $('<a />', {
+                    title: item.ua,
+                    class: 'typecho-access-logs-list-cell-item',
+                    'data-action': 'ua-information',
+                    'data-ua': item.ua,
+                  }).text(item.display_name)
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
+                    'data-action': 'search-anchor',
+                    'data-filter': JSON.stringify({ ua: item.ua }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
+                    'data-action': 'quick-filter-delete',
+                    'data-filter': JSON.stringify({ ua: item.ua }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+            );
             $tr.append($td);
             // ip
             $td = $('<td />');
-            $td.append($('<a />', {
-              class: '',
-              'data-action': 'search-anchor',
-              'data-filter': JSON.stringify({ ip: item.ip }),
-            }).text(item.ip));
+            $td.append(
+              $('<div />', { class: 'typecho-access-logs-list-cell' })
+                .append(
+                  $('<a />', {
+                    class: 'typecho-access-logs-list-cell-item',
+                    'data-action': 'ip-information',
+                    'data-ip-information': item.ip + '\n\n' + item.ip_country + ' ' + item.ip_loc,
+                  }).text(item.ip)
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-search',
+                    'data-action': 'search-anchor',
+                    'data-filter': JSON.stringify({ ip: item.ip }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+                .append(
+                  $('<span />', {
+                    class: 'typecho-access-logs-list-cell-item typecho-access-logs-list-cell-item-icon typecho-access-logs-list-cell-item-delete',
+                    'data-action': 'quick-filter-delete',
+                    'data-filter': JSON.stringify({ ip: item.ip }),
+                    'data-auto-hide': 'yes',
+                  }).hide()
+                )
+            );
             $tr.append($td);
             // ip_loc
             $td = $('<td />');
@@ -125,11 +190,7 @@ $(document).ready(function () {
             $tr.append($td);
             // referer
             $td = $('<td />');
-            $td.append($('<a />', {
-              class: '',
-              'data-action': 'search-anchor',
-              'data-filter': JSON.stringify({ referer: item.referer }),
-            }).text(item.referer));
+            $td.append($('<span />').text(item.referer));
             $tr.append($td);
             // time
             $td = $('<td />');
@@ -142,7 +203,46 @@ $(document).ready(function () {
             $tbody.html('<tr><td colspan="7"><h6 class="typecho-access-logs-list-table-title typecho-access-logs-table-placeholder">暂无数据</h6></td></tr>');
           }
           $('.typecho-access-logs-list-checkbox').change(updateSelectAll);
-          $('a[data-action="search-anchor"]').click(onSearchAnchorClick);
+          $('[data-action="search-anchor"]').click(onSearchAnchorClick);
+          $('.typecho-access-logs-list-cell').hover(
+            function() {
+              $(this).find('[data-auto-hide="yes"]').show();
+            },
+            function() {
+              $(this).find('[data-auto-hide="yes"]').hide();
+            }
+          );
+          $('[data-action="quick-filter-delete"]').click(function(e) {
+            var text = '';
+            var filters = JSON.parse(e.target.getAttribute('data-filter'));
+            if (filters.url) {
+              text = '本次操作将删除符合以下受访地址的记录，你确认要删除这些记录吗?\n\n' + filters.url;
+            } else if (filters.ua) {
+              text = '本次操作将删除符合以下UA的记录，你确认要删除这些记录吗?\n\n' + filters.ua;
+            } else if (filters.ip) {
+              text = '本次操作将删除符合以下IP地址的记录，你确认要删除这些记录吗?\n\n' + filters.ip;
+            }
+            swal({
+              title: "你确定?",
+              text: text,
+              icon: "warning",
+              buttons: {
+                cancel: "算啦",
+                confirm: "是的",
+              },
+            }).then((value) => {
+              if (value === true) {
+                deleteLogs(filters);
+              }
+            });
+          });
+          $('[data-action="ua-information"]').click(function(e) {
+            swal('User-Agent', e.target.getAttribute('data-ua'), 'info');
+          });
+          $('[data-action="ip-information"]').click(function(e) {
+            swal('IP 信息', e.target.getAttribute('data-ip-information'), 'info');
+          });
+
           updateSelectAll();
 
           // logs pagination
@@ -269,7 +369,7 @@ $(document).ready(function () {
 
   $('[name="filter-fuzzy"]').change(function(e) {
     var filters = getFilters();
-    var inputKeys = ['ua', 'ip', 'path'];
+    var inputKeys = ['ua', 'ip', 'url', 'path'];
     if (e.target.value === '1') {
       $(inputKeys).each(function(_, k) {
         if (filters[k] === '') {

@@ -46,6 +46,10 @@
           </select>
         </div>
         <div class="typecho-access-logs-filter-item">
+          <label class="typecho-access-logs-filter-item__label">受访 URL</label>
+          <input class="typecho-access-logs-filter-item__content" type="text" class="text-s" name="filter-url" autocomplete="off" />
+        </div>
+        <div class="typecho-access-logs-filter-item">
           <label class="typecho-access-logs-filter-item__label">受访地址</label>
           <input class="typecho-access-logs-filter-item__content" type="text" class="text-s" name="filter-path" autocomplete="off" />
         </div>
