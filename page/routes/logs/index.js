@@ -432,6 +432,19 @@ $(document).ready(function () {
 
   function deleteLogs(filters) {
     function action(force) {
+      $('body')
+        .loadingModal({ text: '删除记录中...', backgroundColor: '#292d33' })
+        .loadingModal(
+          'animation',
+          [
+            'doubleBounce',
+            'rotatingPlane',
+            // 'wave',
+            // 'wanderingCubes',
+            'foldingCube',
+          ][Math.floor(Math.random() * 3)]
+        )
+        .loadingModal('show');
       $.ajax({
         url: "/access/logs",
         method: "post",
@@ -445,6 +458,7 @@ $(document).ready(function () {
           }
         ),
         success: function (res) {
+          $('body').loadingModal('hide');
           if (res.code === 0) {
             if (res.data.requireForce) {
               swal({
