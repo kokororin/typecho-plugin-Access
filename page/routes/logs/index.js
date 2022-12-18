@@ -501,6 +501,7 @@ $(document).ready(function () {
           }
         },
         error: function (xhr, status, error) {
+          $('body').loadingModal('hide');
           swal({
             icon: "error",
             title: "错误",
