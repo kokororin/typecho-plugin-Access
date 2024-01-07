@@ -46,7 +46,12 @@ class Access_Plugin implements Typecho_Plugin_Interface
         $config = Typecho_Widget::widget('Widget_Options')->plugin('Access');
         if ($config->isDrop == 0) {
             $db = Typecho_Db::get();
-            $db->query("DROP TABLE `{$db->getPrefix()}access_logs`", Typecho_Db::WRITE);
+            $adapterName = $db->getAdapterName();
+            if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+                $db->query("DROP TABLE `{$db->getPrefix()}access_logs`", Typecho_Db::WRITE);
+            } else if (strpos($adapterName, 'Pgsql') !== false) {
+                $db->query("DROP TABLE \"{$db->getPrefix()}access_logs\"", Typecho_Db::WRITE);
+            }
         }
         Helper::removePanel(1, self::$panel);
         Helper::removeRoute("access_track_gif");
@@ -161,8 +166,33 @@ class Access_Plugin implements Typecho_Plugin_Interface
             } catch (Exception $e) {
                 throw new Typecho_Plugin_Exception($e->getMessage());
             }
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            $prefix  = $db->getPrefix();
+            $scripts = file_get_contents('usr/plugins/Access/sql/Pgsql.sql');
+            $scripts = str_replace('typecho_', $prefix, $scripts);
+            $scripts = explode(';', $scripts);
+            try {
+                $configLink = '<a href="' . Helper::options()->adminUrl . 'options-plugin.php?config=Access">' . _t('前往设置') . '</a>';
+                # 初始化数据库如果不存在
+                if (!$db->fetchRow($db->query("SELECT tablename FROM pg_tables WHERE schemaname='public' AND tablename='{$prefix}access_logs';", Typecho_Db::READ))) {
+                    foreach ($scripts as $script) {
+                        $script = trim($script);
+                        if ($script) {
+                            $db->query($script, Typecho_Db::WRITE);
+                        }
+                    }
+                    $msg = _t('成功创建数据表，插件启用成功，') . $configLink;
+                } else {
+                    $msg = _t('数据表已存在，插件启用成功，') . $configLink;
+                }
+                return $msg;
+            } catch (Typecho_Db_Exception $e) {
+                throw new Typecho_Plugin_Exception(_t('数据表建立失败，插件启用失败，错误信息：%s。', $e->getMessage()));
+            } catch (Exception $e) {
+                throw new Typecho_Plugin_Exception($e->getMessage());
+            }
         } else {
-            throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql和SQLite', $adapterName));
+            throw new Typecho_Plugin_Exception(_t('你的适配器为%s，目前只支持Mysql、SQLite和Pgsql', $adapterName));
         }
     }
 

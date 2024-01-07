@@ -100,23 +100,48 @@ class Access_Statistic {
         $resp = [];
         $ps = $this->request->get('ps', 10); # 页大小
         # 统计文章浏览比例
-        foreach(
-            $this->db->fetchAll(
-                $this->db
-                ->select('content_id AS cid, table.contents.title AS title, COUNT(1) AS cnt')
-                ->from('table.access_logs')
-                ->join('table.contents', 'content_id = table.contents.cid', Typecho_Db::INNER_JOIN)
-                ->where('IFNULL(content_id, 0)')
-                ->group('content_id')
-                ->order('cnt', Typecho_Db::SORT_DESC)
-                ->limit($ps)
-            ) as $i
-        ) {
-            $resp[] = [
-                'cid' => intval($i['cid']),
-                'title' => $i['title'],
-                'count' => intval($i['cnt'])
-            ];
+    
+        $adapterName = $this->db->getAdapterName();
+        if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+            foreach(
+                $this->db->fetchAll(
+                    $this->db
+                    ->select('content_id AS cid, table.contents.title AS title, COUNT(1) AS cnt')
+                    ->from('table.access_logs')
+                    ->join('table.contents', 'content_id = table.contents.cid', Typecho_Db::INNER_JOIN)
+                    ->where('IFNULL(content_id, 0)')
+                    ->group('content_id')
+                    ->order('cnt', Typecho_Db::SORT_DESC)
+                    ->limit($ps)
+                ) as $i
+            ) {
+                $resp[] = [
+                    'cid' => intval($i['cid']),
+                    'title' => $i['title'],
+                    'count' => intval($i['cnt'])
+                ];
+            }
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            foreach(
+                $this->db->fetchAll(
+                    $this->db
+                    ->select('content_id AS cid, MAX(table.contents.title) AS title, COUNT(1) AS cnt')
+                    ->from('table.access_logs')
+                    ->join('table.contents', 'content_id = table.contents.cid', Typecho_Db::INNER_JOIN)
+                    ->where('content_id <> ?', 0)
+                    ->group('content_id')
+                    ->order('cnt', Typecho_Db::SORT_DESC)
+                    ->limit($ps)
+                ) as $i
+            ) {
+                $resp[] = [
+                    'cid' => intval($i['cid']),
+                    'title' => $i['title'],
+                    'count' => intval($i['cnt'])
+                ];
+            }
+        } else {
+            throw new Exception("Unsupported database adapter: " . $adapterName);
         }
         return $resp;
     }
@@ -132,32 +157,61 @@ class Access_Statistic {
         $resp = [];
         $ps = $this->request->get('ps', 10); # 页大小
         $cate = $this->request->get('cate'); # 类型
-        switch($cate) {
-            case 'china':
-                # 国内
-                $fetchData = $this->db->fetchAll(
-                    $this->db
-                    ->select("IF(ip_province = '中国', '国内未明确', ip_province) AS area, COUNT(1) AS cnt")
-                    ->from('table.access_logs')
-                    ->where("ip_country = '中国'")
-                    ->group('area')
-                    ->order('cnt', Typecho_Db::SORT_DESC)
-                    ->limit($ps)
-                );
-                break;
-            case 'inter':
-                # 国际
-                $fetchData = $this->db->fetchAll(
-                    $this->db
-                    ->select("ip_country AS area, COUNT(1) AS cnt")
-                    ->from('table.access_logs')
-                    ->group('area')
-                    ->order('cnt', Typecho_Db::SORT_DESC)
-                    ->limit(15)
-                );
-                break;
-            default:
-                throw new Exception('Bad Request', 400);
+        $adapterName = $this->db->getAdapterName();
+        if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+            switch($cate) {
+                case 'china':
+                    # 国内
+                    $fetchData = $this->db->fetchAll(
+                        $this->db
+                        ->select("IF(ip_province = '中国', '国内未明确', ip_province) AS area, COUNT(1) AS cnt")
+                        ->from('table.access_logs')
+                        ->where("ip_country = '中国'")
+                        ->group('area')
+                        ->order('cnt', Typecho_Db::SORT_DESC)
+                        ->limit($ps)
+                    );
+                    break;
+                case 'inter':
+                    # 国际
+                    $fetchData = $this->db->fetchAll(
+                        $this->db
+                        ->select("ip_country AS area, COUNT(1) AS cnt")
+                        ->from('table.access_logs')
+                        ->group('area')
+                        ->order('cnt', Typecho_Db::SORT_DESC)
+                        ->limit(15)
+                    );
+                    break;
+                default:
+                    throw new Exception('Bad Request', 400);
+            }
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            switch($cate) {
+                case 'china':
+                    # 国内
+                    $sql = "SELECT CASE WHEN ip_province = '中国' THEN '国内未明确' ELSE ip_province END AS area, COUNT(1) AS cnt 
+                            FROM {$this->db->getPrefix()}access_logs 
+                            WHERE ip_country = '中国' 
+                            GROUP BY area 
+                            ORDER BY cnt DESC 
+                            LIMIT {$ps}";
+                    $fetchData = $this->db->query($sql)->fetchAll();
+                    break;
+                case 'inter':
+                    # 国际
+                    $fetchData = $this->db->fetchAll(
+                        $this->db
+                        ->select("ip_country AS area, COUNT(1) AS cnt")
+                        ->from('table.access_logs')
+                        ->group('area')
+                        ->order('cnt', Typecho_Db::SORT_DESC)
+                        ->limit(15)
+                    );
+                    break;
+                default:
+                    throw new Exception('Bad Request', 400);
+            }
         }
         foreach($fetchData as $row) {
             $resp[] = [

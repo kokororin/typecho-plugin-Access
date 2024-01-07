@@ -33,11 +33,21 @@ class Access_Migration {
     public function exists()
     {
         $prefix = $this->db->getPrefix();
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
-            return true;
-        }
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
-            return true;
+        $adapterName = $this->db->getAdapterName();
+        if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+            if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+                return true;
+            }
+            if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+                return true;
+            }
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            if ($this->db->fetchRow($this->db->query("SELECT to_regclass('public.{$prefix}access');", Typecho_Db::READ))) {
+                return true;
+            }
+            if ($this->db->fetchRow($this->db->query("SELECT to_regclass('public.{$prefix}access_log');", Typecho_Db::READ))) {
+                return true;
+            }
         }
         return false;
     }
@@ -53,18 +63,33 @@ class Access_Migration {
     {
         $resp = [ 'total' => 0 ];
         $prefix = $this->db->getPrefix();
+        $adapterName = $this->db->getAdapterName();
+    
         // 统计 v1 版本数据
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+        if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+            $checkTableV1 = $this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ));
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            $checkTableV1 = $this->db->fetchRow($this->db->query("SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = '{$prefix}access';", Typecho_Db::READ));
+        }
+        if ($checkTableV1) {
             $resp['v1'] = $this->db->fetchRow($this->db->select('COUNT(1) AS cnt')->from('table.access'))['cnt'];
             $resp['total'] += $resp['v1'];
         }
+    
         // 统计 v2 版本数据
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+        if (strpos($adapterName, 'Mysql') !== false || strpos($adapterName, 'SQLite') !== false) {
+            $checkTableV2 = $this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ));
+        } else if (strpos($adapterName, 'Pgsql') !== false) {
+            $checkTableV2 = $this->db->fetchRow($this->db->query("SELECT tablename FROM pg_catalog.pg_tables WHERE tablename = '{$prefix}access_log';", Typecho_Db::READ));
+        }
+        if ($checkTableV2) {
             $resp['v2'] = intval($this->db->fetchRow($this->db->select('COUNT(1) AS cnt')->from('table.access_log'))['cnt']);
             $resp['total'] += $resp['v2'];
         }
+    
         return $resp;
     }
+    
 
     /**
      * 迁移旧版本数据，单次1000条
@@ -78,8 +103,13 @@ class Access_Migration {
         $resp = [ 'count' => 0, 'remain' => 0 ];
         $step = 1000;
         $prefix = $this->db->getPrefix();
+        $adapterName = $this->db->getAdapterName();
+    
+        $showTableQuery = strpos($adapterName, 'Pgsql') !== false ? 
+            "SELECT * FROM information_schema.tables WHERE table_name LIKE '{$prefix}access';" :
+            "SHOW TABLES LIKE '{$prefix}access';";
         // 迁移 v1 版本数据
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access';", Typecho_Db::READ))) {
+        if ($this->db->fetchRow($this->db->query($showTableQuery, Typecho_Db::READ))) {
             $remain = intval($this->db->fetchRow($this->db->select('COUNT(1) AS cnt')->from('table.access'))['cnt']);
             if ($resp['count'] === 0) {
                 $rows = $this->db->fetchAll($this->db->select()->from('table.access')->limit($step));
@@ -108,12 +138,19 @@ class Access_Migration {
                 }
             }
             if ($remain === 0) {
-                $this->db->query("DROP TABLE `{$prefix}access`;", Typecho_Db::WRITE);
+                $dropTableQuery = strpos($adapterName, 'Pgsql') !== false ? 
+                    "DROP TABLE IF EXISTS {$prefix}access;" :
+                    "DROP TABLE `{$prefix}access`;";
+                $this->db->query($dropTableQuery, Typecho_Db::WRITE);
             }
             $resp['remain'] += $remain;
         }
+        
+        $showTableQuery = strpos($adapterName, 'Pgsql') !== false ? 
+            "SELECT * FROM information_schema.tables WHERE table_name LIKE '{$prefix}access_log';" :
+            "SHOW TABLES LIKE '{$prefix}access_log';";
         // 迁移 v2 版本数据
-        if ($this->db->fetchRow($this->db->query("SHOW TABLES LIKE '{$prefix}access_log';", Typecho_Db::READ))) {
+        if ($this->db->fetchRow($this->db->query($showTableQuery, Typecho_Db::READ))) {
             $remain = intval($this->db->fetchRow($this->db->select('COUNT(1) AS cnt')->from('table.access_log'))['cnt']);
             if ($resp['count'] === 0) {
                 $rows = $this->db->fetchAll($this->db->select()->from('table.access_log')->limit($step));
@@ -128,7 +165,10 @@ class Access_Migration {
                 }
             }
             if ($remain === 0) {
-                $this->db->query("DROP TABLE `{$prefix}access_log`;", Typecho_Db::WRITE);
+                $dropTableQuery = strpos($adapterName, 'Pgsql') !== false ? 
+                    "DROP TABLE IF EXISTS {$prefix}access_log;" :
+                    "DROP TABLE `{$prefix}access_log`;";
+                $this->db->query($dropTableQuery, Typecho_Db::WRITE);
             }
             $resp['remain'] += $remain;
         }
